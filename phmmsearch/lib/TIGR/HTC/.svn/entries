@@ -2,7 +2,7 @@
 
 dir
 1029
-http://svn.jcvi.org/CLOSURE/miniHMMR3/phmmsearch/lib/TIGR/HTC
+http://svn.jcvi.org/CLOSURE/miniHMMR3_nogrid_noWUblast/phmmsearch/lib/TIGR/HTC
 http://svn.jcvi.org/CLOSURE
 
 
@@ -32,7 +32,7 @@ file
 
 
 
-2011-12-19T18:29:01.967901Z
+2011-12-19T18:29:32.655389Z
 0c6c7aabb762df6e108bbd6f1e96c3ec
 2008-01-02T17:07:54.721180Z
 961

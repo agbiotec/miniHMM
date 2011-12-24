@@ -1,41 +1,41 @@
 K 25
 svn:wc:ra_dav:version-url
-V 52
-/CLOSURE/!svn/ver/1025/miniHMMR3/cgi-bin/lib/miniHMM
+V 69
+/CLOSURE/!svn/ver/1029/miniHMMR3_nogrid_noWUblast/cgi-bin/lib/miniHMM
 END
 Blast.pm
 K 25
 svn:wc:ra_dav:version-url
-V 61
-/CLOSURE/!svn/ver/1020/miniHMMR3/cgi-bin/lib/miniHMM/Blast.pm
+V 78
+/CLOSURE/!svn/ver/1029/miniHMMR3_nogrid_noWUblast/cgi-bin/lib/miniHMM/Blast.pm
 END
 AccConfig.pm
 K 25
 svn:wc:ra_dav:version-url
-V 65
-/CLOSURE/!svn/ver/1012/miniHMMR3/cgi-bin/lib/miniHMM/AccConfig.pm
+V 82
+/CLOSURE/!svn/ver/1026/miniHMMR3_nogrid_noWUblast/cgi-bin/lib/miniHMM/AccConfig.pm
 END
 Alignment.pm
 K 25
 svn:wc:ra_dav:version-url
-V 65
-/CLOSURE/!svn/ver/1023/miniHMMR3/cgi-bin/lib/miniHMM/Alignment.pm
+V 82
+/CLOSURE/!svn/ver/1026/miniHMMR3_nogrid_noWUblast/cgi-bin/lib/miniHMM/Alignment.pm
 END
 App.pm
 K 25
 svn:wc:ra_dav:version-url
-V 59
-/CLOSURE/!svn/ver/1012/miniHMMR3/cgi-bin/lib/miniHMM/App.pm
+V 76
+/CLOSURE/!svn/ver/1026/miniHMMR3_nogrid_noWUblast/cgi-bin/lib/miniHMM/App.pm
 END
 HmmCommand.pm
 K 25
 svn:wc:ra_dav:version-url
-V 66
-/CLOSURE/!svn/ver/1025/miniHMMR3/cgi-bin/lib/miniHMM/HmmCommand.pm
+V 83
+/CLOSURE/!svn/ver/1026/miniHMMR3_nogrid_noWUblast/cgi-bin/lib/miniHMM/HmmCommand.pm
 END
 HmmModel.pm
 K 25
 svn:wc:ra_dav:version-url
-V 64
-/CLOSURE/!svn/ver/1025/miniHMMR3/cgi-bin/lib/miniHMM/HmmModel.pm
+V 81
+/CLOSURE/!svn/ver/1028/miniHMMR3_nogrid_noWUblast/cgi-bin/lib/miniHMM/HmmModel.pm
 END

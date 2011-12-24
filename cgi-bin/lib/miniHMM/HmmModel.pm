@@ -116,6 +116,7 @@ package miniHMM::HmmModel;
         #SEED alignments come in stockholm, so accomodate this
 	if ($alignment_file =~ m/SEED/) {
 		$hmm_build_cmd = "$hmmbuild --amino $hmm_file $alignment_file >>$log_file";
+		print "\n\n $hmm_file $alignment_file\n\n";
 	}
 	else { $hmm_build_cmd = "$hmmbuild --amino --informat afa $hmm_file $alignment_file >>$log_file";}
         warn "HMM build $hmm_build_cmd\n";
@@ -582,8 +583,8 @@ sub get_blast_match {
     close IN;
     close OUT;
 
-    $best_match =
-`blastp $db blast_query.fasta mformat=2 W=10 gapE=2000 v=5 b=5 warnings notes | head -2 | tail -1 | cut -f2`;
+    $best_match = '';
+#`blastp $db blast_query.fasta mformat=2 W=10 gapE=2000 v=5 b=5 warnings notes | head -2 | tail -1 | cut -f2`;
     chomp $best_match;
 
     return $best_match;

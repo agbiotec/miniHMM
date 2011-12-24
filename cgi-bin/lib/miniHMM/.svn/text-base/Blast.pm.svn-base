@@ -15,10 +15,14 @@ $ENV{SGE_QMASTER_PORT} = '6444';
 $ENV{SGE_CELL} = 'jcvi';
 $ENV{SGE_CLUSTER_NAME} = 'p6444-jcvi';
 
-my @qsub_cmd = qw(/usr/local/sge_current/bin/lx24-amd64/qsub -P 0116 -l fast -sync y -cwd);
-my $blastp_cmd = '/usr/local/bin/blastp';
-my @blast_options = qw/W=10 gapE=2000 warnings notes/;
-$ENV{BLASTMAT} = '/usr/local/packages/blast2/matrix';
+#my @qsub_cmd = qw(/usr/local/sge_current/bin/lx24-amd64/qsub -P 0116 -l fast -sync y -cwd);
+#my @qsub_cmd = '';
+#my $blastp_cmd = '/usr/local/bin/blastp';
+my $blastp_cmd = 'blastall -p blastp';
+#my @blast_options = qw/W=10 gapE=2000 warnings notes/;
+my @blast_options = '-W 5';
+#$ENV{BLASTMAT} = '/usr/local/packages/blast2/matrix';
+#$ENV{BLASTMAT} = '/usr/local/packages/blast/data/';
 my $yank_cmd = '/usr/local/bin/cdbyank';
 
 sub _yank_accession {
@@ -87,9 +91,10 @@ sub do_blastp {
     
     my $blast_file = "$accession.blastout";
     $blast_file =~ s/[^\w\.\_]+/_/g;
-    my @cmd = (@qsub_cmd, $blastp_cmd, $db, $fasta_file, @blast_options, '-o', $blast_file);
+    my @cmd = ($blastp_cmd, '-d', $db, '-i', $fasta_file, @blast_options, '-o', $blast_file);
     warn "blast command: ",join(' ', @cmd); 
-    my $res = system(@cmd);
+    #my $res = system(@cmd);
+    my $res = system(join(' ', @cmd));
     if ($res) {
     #if (!$?==0) {
         die "Blast failed. $!";        
