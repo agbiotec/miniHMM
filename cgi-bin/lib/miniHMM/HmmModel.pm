@@ -33,9 +33,9 @@ package miniHMM::HmmModel;
     qw/htab hits HMM msf selex SEED fas fa clw clustalw cl/;
 
     my $runcmd       = "/home/sgeworker/bin/runLinux";
-    my $hmmbuild     = "/usr/local/bin/hmm3build";
-    #my $hmmcalibrate = "/usr/local/bin/hmmcalibrate";
-    my $hmmsearch    = "/usr/local/bin/hmm3search";
+    my $hmmbuild     = "/usr/bin/hmmbuild";
+    #my $hmmcalibrate = "/usr/bin/hmmcalibrate";
+    my $hmmsearch    = "/usr/bin/hmmsearch";
 
     my $htab = "/usr/local/devel/ANNOTATION/rrichter/miniHMM/phmmsearch/htab_gaps.pl";
 #    my @htab_file_fields = qw/

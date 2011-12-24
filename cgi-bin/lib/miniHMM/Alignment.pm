@@ -8,7 +8,7 @@ package miniHMM::Alignment; {
     
     use Bio::AlignIO;
     
-    my $belvu = '/usr/local/bin/belvu';
+    my $belvu = '/usr/bin/belvu';
     
     my @acceptable_formats = qw(msf stockholm clustalw fasta);
     
