@@ -183,6 +183,9 @@ package miniHMM::HmmCommand;
         my $seed           = $self->{seed};
 
         my @hits_for_seed  = $seed->get_hits();
+	#print "\n\n $hits_for_seed[0]->{total_score} \n\n";
+	#print "\n\n $self->{trusted_cutoff} \n\n";
+
         my $trusted_cutoff = $self->{trusted_cutoff};
         my @above_trusted_hits = grep { $_->total_score >= $trusted_cutoff } @hits_for_seed;
         my $noise_cutoff = $self->{noise_cutoff};
@@ -214,6 +217,8 @@ package miniHMM::HmmCommand;
 
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
 
+          if (defined($mini_cutoff)) {
+
                 my $all_ignored =
                 [ @manual_length_filtered, @$mini_cutoff_filtered ];
                 my $key_for_ignored =
@@ -226,6 +231,8 @@ package miniHMM::HmmCommand;
                 if ( $profiles{$mini_name}{$specificity}->sensitivity >= 100 ) {
                     last;
                 }
+	  }
+	  else {$profiles{$mini_name}{$specificity} = _Profile->new();}
             }
         }
 
@@ -260,6 +267,7 @@ package miniHMM::HmmCommand;
         foreach my $mini (@minis) {
             my $mini_name        = $mini->get_name;
             my $profile100       = $self->{profiles}{$mini_name}{100};
+	    if (!$profile100) {next;}
             my $mini_sensitivity = $profile100->sensitivity;
             if ( $mini_sensitivity >= $mini_sensitivity_threshhold ) {
                 $minis_above_thresh++;
@@ -299,8 +307,11 @@ package miniHMM::HmmCommand;
             print $out $hit_accession, "\t", $hit_score, "\t", $this_hit_count,
             "\n";
         }
+	if ($total_count) {
         $overall_sensitivity =
         ( $mini_hit_count + $ignore_count ) / $total_count * 100;
+	}
+	else {$overall_sensitivity = 0;}
         print $out "\n\n overall sensitivity = ", $overall_sensitivity;
         close $out;
     }
@@ -326,7 +337,7 @@ package miniHMM::HmmCommand;
                 $start = $end - $model_length;
             }
             my $name = sprintf( "%s.mini.%02d", ( $self->{prefix}, $n ) );
-            my $mini_file_name = "$name.selex";
+            my $mini_file_name = "$name.afa";
             my $mini = $filtered->get_sub_alignment( $start, $end );
             $mini->save($mini_file_name);
             my $model = miniHMM::HmmModel->new(
@@ -363,7 +374,7 @@ package miniHMM::HmmCommand;
         my $left_end   = $model_length - 1;
         my $left_model = $filtered->get_sub_alignment( $left_begin, $left_end );
         my $lname      = $self->{prefix} . ".01.nterm";
-        my $left_file_name = "$lname.selex";
+        my $left_file_name = "$lname.afa";
         $left_model->save($left_file_name);
         push @minis,
         miniHMM::HmmModel->new(
@@ -382,7 +393,7 @@ package miniHMM::HmmCommand;
         my $right_model =
         $filtered->get_sub_alignment( $right_begin, $right_end );
         my $rname           = $self->{prefix} . ".02.cterm";
-        my $right_file_name = "$rname.selex";
+        my $right_file_name = "$rname.afa";
         $right_model->save($right_file_name);
         push @minis,
         miniHMM::HmmModel->new(
@@ -466,6 +477,7 @@ package miniHMM::HmmCommand;
             my $mini_name  = $mini->get_name;
             my $profile100 = $self->{profiles}{$mini_name}{100};
             my $LOWprofile;
+	    if (!$profile100) {next;}
             foreach my $LOW (@SPECIFICITY_CUTOFFS) {
                 if ( $self->{profiles}{$mini_name}{$LOW} ) {
                     $LOWprofile = $self->{profiles}{$mini_name}{$LOW};
@@ -523,16 +535,22 @@ package miniHMM::HmmCommand;
             @seed_hit_names
         );
         my @profile_results;
-        my @profiles =
-        sort { $b->cutoff <=> $a->cutoff }
-        values %{ $self->{profiles}{$mini_name} };
+        #my @profiles =
+        #sort { $b->cutoff <=> $a->cutoff }
+        #values %{ $self->{profiles}{$mini_name} };
+	my @profiles = ();
+	{ no warnings qw/uninitialized/;
+	@profiles = sort { $b->cutoff <=> $a->cutoff }
+	       values %{ $self->{profiles}{$mini_name} };
+	}
         my $last_score_cutoff;
 
         foreach my $profile (@profiles) {
-            if ( $last_score_cutoff and $profile->cutoff == $last_score_cutoff )
+            if ( !defined ($profile->cutoff) or ($last_score_cutoff and $profile->cutoff == $last_score_cutoff) )
             {
-                next;    # skip identical profiles
+                next;    # skip identical or empty profiles
             }
+	    
             my $lower_cutoff = $profile->lower_cutoff_score;
             if ( not defined $lower_cutoff ) {
                 $lower_cutoff = 'None';
@@ -554,7 +572,7 @@ package miniHMM::HmmCommand;
                     $profile_result{$hit_name} = $hit->total_score;
                 }
                 else {
-                    $profile_result{$hit_name} = '';
+                    $profile_result{$hit_name} = '(no hit to parent)';
                 }
             }
             push @profile_results, \%profile_result;
@@ -562,6 +580,7 @@ package miniHMM::HmmCommand;
         }
 
         # - merge result tables
+	print YAML::Dump(\@profile_results);
         my @result_table;
         foreach my $field (@fields) {
             push @result_table,
@@ -612,7 +631,7 @@ package miniHMM::HmmCommand;
         # gap filter and set up gap map
         my ( $filtered, $gaps ) = $seed->get_gap_trimmed( $self->{gap_filter} );
         if ($filtered) {
-            $filtered->save( $self->{prefix} . ".gap_filter.selex" );
+            $filtered->save( $self->{prefix} . ".gap_filter.afa" );
         }
         else {
             warn "Could not filter seed file\n";
@@ -648,6 +667,9 @@ package miniHMM::HmmCommand;
         # do hmm evaluation on all models (seed and mini-models);
         warn "Running hmmsearches\n";
         $self->run_hmmsearches();
+        if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
+		die "Seed HMM has no hits to specified database!\n";
+	}
 
         # generate profiles
         $self->generate_profiles();

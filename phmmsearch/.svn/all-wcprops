@@ -1,53 +1,53 @@
 K 25
 svn:wc:ra_dav:version-url
-V 40
-/CLOSURE/!svn/ver/969/miniHMM/phmmsearch
+V 43
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch
 END
 hmmsubmit.pl
 K 25
 svn:wc:ra_dav:version-url
-V 53
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/hmmsubmit.pl
+V 56
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/hmmsubmit.pl
 END
 hmmsearch_wrapper.pl
 K 25
 svn:wc:ra_dav:version-url
-V 61
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/hmmsearch_wrapper.pl
+V 64
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/hmmsearch_wrapper.pl
 END
 phmmsearch.pl
 K 25
 svn:wc:ra_dav:version-url
-V 54
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/phmmsearch.pl
+V 57
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/phmmsearch.pl
 END
 htab_gaps.pl
 K 25
 svn:wc:ra_dav:version-url
-V 53
-/CLOSURE/!svn/ver/969/miniHMM/phmmsearch/htab_gaps.pl
+V 56
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/htab_gaps.pl
 END
 phmmsearch2.pl
 K 25
 svn:wc:ra_dav:version-url
-V 55
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/phmmsearch2.pl
+V 58
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/phmmsearch2.pl
 END
 hmmsearch_wrapper.patch
 K 25
 svn:wc:ra_dav:version-url
-V 64
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/hmmsearch_wrapper.patch
+V 67
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/hmmsearch_wrapper.patch
 END
 phmmsearch.patch
 K 25
 svn:wc:ra_dav:version-url
-V 57
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/phmmsearch.patch
+V 60
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/phmmsearch.patch
 END
 phmmsearch
 K 25
 svn:wc:ra_dav:version-url
-V 51
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/phmmsearch
+V 54
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/phmmsearch
 END

@@ -1,23 +1,23 @@
 K 25
 svn:wc:ra_dav:version-url
-V 37
-/CLOSURE/!svn/ver/996/miniHMM/scripts
+V 40
+/CLOSURE/!svn/ver/1016/miniHMMR3/scripts
 END
 grid_wrapper.pl
 K 25
 svn:wc:ra_dav:version-url
-V 53
-/CLOSURE/!svn/ver/995/miniHMM/scripts/grid_wrapper.pl
+V 56
+/CLOSURE/!svn/ver/1012/miniHMMR3/scripts/grid_wrapper.pl
 END
 bulk_minihmms.pl
 K 25
 svn:wc:ra_dav:version-url
-V 54
-/CLOSURE/!svn/ver/995/miniHMM/scripts/bulk_minihmms.pl
+V 57
+/CLOSURE/!svn/ver/1012/miniHMMR3/scripts/bulk_minihmms.pl
 END
 create_minihmm.pl
 K 25
 svn:wc:ra_dav:version-url
-V 55
-/CLOSURE/!svn/ver/996/miniHMM/scripts/create_minihmm.pl
+V 58
+/CLOSURE/!svn/ver/1016/miniHMMR3/scripts/create_minihmm.pl
 END

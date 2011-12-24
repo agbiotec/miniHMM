@@ -189,7 +189,7 @@ sub run_minihmm_eval {
         open STDERR, ">&STDOUT";
     }
     my $working_dir = $opts->working_directory;
-    my $hmm_seed_aln = $opts->hmm_seed;
+    my $hmm_seed_aln = $opts->hmm_alignment_file;
     my $prefix = $hmm_seed_aln;
     $prefix =~ s/\.[^.]+$//;
     
@@ -197,7 +197,7 @@ sub run_minihmm_eval {
     TRACE "Instantiating command object for $prefix";
     my $cmd = miniHMM::HmmCommand->new({
         dir => $opts->working_directory,
-        seed_file => $opts->hmm_seed,
+        seed_file => $opts->hmm_alignment_file,
         prefix => $prefix,
         trusted_cutoff =>  $opts->trusted_cutoff,
         noise_cutoff => $opts->noise_cutoff,

@@ -1,23 +1,23 @@
 K 25
 svn:wc:ra_dav:version-url
-V 38
-/CLOSURE/!svn/ver/1011/miniHMM/cgi-bin
+V 40
+/CLOSURE/!svn/ver/1025/miniHMMR3/cgi-bin
 END
 conf_gen.pl
 K 25
 svn:wc:ra_dav:version-url
-V 49
-/CLOSURE/!svn/ver/959/miniHMM/cgi-bin/conf_gen.pl
+V 52
+/CLOSURE/!svn/ver/1012/miniHMMR3/cgi-bin/conf_gen.pl
 END
 index.cgi
 K 25
 svn:wc:ra_dav:version-url
-V 48
-/CLOSURE/!svn/ver/1011/miniHMM/cgi-bin/index.cgi
+V 50
+/CLOSURE/!svn/ver/1012/miniHMMR3/cgi-bin/index.cgi
 END
 apprentice.conf
 K 25
 svn:wc:ra_dav:version-url
-V 53
-/CLOSURE/!svn/ver/996/miniHMM/cgi-bin/apprentice.conf
+V 56
+/CLOSURE/!svn/ver/1015/miniHMMR3/cgi-bin/apprentice.conf
 END

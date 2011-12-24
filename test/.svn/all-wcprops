@@ -1,17 +1,17 @@
 K 25
 svn:wc:ra_dav:version-url
-V 34
-/CLOSURE/!svn/ver/966/miniHMM/test
+V 37
+/CLOSURE/!svn/ver/1012/miniHMMR3/test
 END
 test_hmmCommand.pl
 K 25
 svn:wc:ra_dav:version-url
-V 53
-/CLOSURE/!svn/ver/966/miniHMM/test/test_hmmCommand.pl
+V 56
+/CLOSURE/!svn/ver/1012/miniHMMR3/test/test_hmmCommand.pl
 END
 tigr03250.selex
 K 25
 svn:wc:ra_dav:version-url
-V 50
-/CLOSURE/!svn/ver/961/miniHMM/test/tigr03250.selex
+V 53
+/CLOSURE/!svn/ver/1012/miniHMMR3/test/tigr03250.selex
 END

@@ -1,29 +1,29 @@
 K 25
 svn:wc:ra_dav:version-url
-V 49
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR
+V 52
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/lib/TIGR
 END
 HTCRequest.pm
 K 25
 svn:wc:ra_dav:version-url
-V 63
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTCRequest.pm
+V 66
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/lib/TIGR/HTCRequest.pm
 END
 HTC.pm
 K 25
 svn:wc:ra_dav:version-url
-V 56
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTC.pm
+V 59
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/lib/TIGR/HTC.pm
 END
 HTC.pm.templ
 K 25
 svn:wc:ra_dav:version-url
-V 62
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTC.pm.templ
+V 65
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/lib/TIGR/HTC.pm.templ
 END
 HTCUtils.pm
 K 25
 svn:wc:ra_dav:version-url
-V 61
-/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTCUtils.pm
+V 64
+/CLOSURE/!svn/ver/1012/miniHMMR3/phmmsearch/lib/TIGR/HTCUtils.pm
 END

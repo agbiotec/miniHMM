@@ -10,7 +10,7 @@ package miniHMM::Alignment; {
     
     my $belvu = '/usr/local/bin/belvu';
     
-    my @acceptable_formats = qw(msf selex clustalw fasta);
+    my @acceptable_formats = qw(msf stockholm clustalw fasta);
     
     sub new {
         my $class = shift;
@@ -69,9 +69,9 @@ package miniHMM::Alignment; {
         }
         my $log_tfh = File::Temp->new(SUFFIX =>".log", UNLINK=>0);
         my $log_name = $log_tfh->filename;
-        my $target_tfh = File::Temp->new(SUFFIX=>".msf", UNLINK=>0);
+        my $target_tfh = File::Temp->new(SUFFIX=>".afa", UNLINK=>0);
         my $target_name = $target_tfh->filename;
-        my $cmd = "$belvu -o msf -Q $threshold $source_name 2>$log_name >$target_name";
+        my $cmd = "$belvu -o FastaAlign -Q $threshold $source_name 2>$log_name >$target_name";
         # warn "belvu: $cmd";
         my $res = system($cmd);
         $res = $res >> 8;
@@ -80,7 +80,7 @@ package miniHMM::Alignment; {
             return
         }
         else {
-            my $aln_in = Bio::AlignIO->new(-fh=>$target_tfh, -format=>'msf');
+            my $aln_in = Bio::AlignIO->new(-fh=>$target_tfh, -format=>'fasta');
             my $aln = $aln_in->next_aln();
             my $trimmed = $class->new($aln);
             my @cols = ();
@@ -132,7 +132,7 @@ package miniHMM::Alignment; {
     
     sub to_string {
         my $self = shift;
-        my $format = shift || 'selex';
+        my $format = shift || 'fasta';
         my $output;
         open my $ofh, ">", \$output;
         my $out = Bio::AlignIO->new(-fh=>$ofh, -format=>$format);
@@ -145,7 +145,7 @@ package miniHMM::Alignment; {
     sub save {
         my $self = shift;
         my $file_name = shift;
-        my $format = shift || 'selex';
+        my $format = shift || 'fasta';
         my $out = Bio::AlignIO->new(-file=>">$file_name", -format=>$format);
         $out->write_aln($self->{aln});
         $out = undef;

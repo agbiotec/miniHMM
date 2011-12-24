@@ -33,16 +33,22 @@ package miniHMM::HmmModel;
     qw/htab hits HMM msf selex SEED fas fa clw clustalw cl/;
 
     my $runcmd       = "/home/sgeworker/bin/runLinux";
-    my $hmmbuild     = "/usr/local/bin/hmmbuild";
-    my $hmmcalibrate = "/usr/local/bin/hmmcalibrate";
-    my $hmmsearch    = "/usr/local/bin/hmmsearch";
+    my $hmmbuild     = "/usr/local/bin/hmm3build";
+    #my $hmmcalibrate = "/usr/local/bin/hmmcalibrate";
+    my $hmmsearch    = "/usr/local/bin/hmm3search";
 
     my $htab = "/usr/local/devel/ANNOTATION/rrichter/miniHMM/phmmsearch/htab_gaps.pl";
+#    my @htab_file_fields = qw/
+#    accession date hmm_length method db_name hit_accession
+#    hmm_start hmm_end hit_start hit_end gap_start gap_end _blank_
+#    domain_score total_score domain_num total_domains hmm_desc hit_desc
+#    trusted_cutoff noise_cutoff total_escore domain_escore
+#    /;
+
     my @htab_file_fields = qw/
-    accession date hmm_length method db_name hit_accession
-    hmm_start hmm_end hit_start hit_end gap_start gap_end _blank_
-    domain_score total_score domain_num total_domains hmm_desc hit_desc
-    trusted_cutoff noise_cutoff total_escore domain_escore
+    hit_accession empty_accession_target target_length accession empty_accession_hmm query_len full_evalue 
+    total_score full_bias number_of number_total domain_cevalue domain_ievalue domain_score domain_bias 
+    hmm_from hmm_to hit_start hit_end env_from env_to acc target_description
     /;
 
     # create accessors
@@ -105,14 +111,19 @@ package miniHMM::HmmModel;
         my $prefix         = $self->get_name;
         my $hmm_file       = "$prefix.HMM";
         my $log_file       = "$prefix.log";
-        my $hmm_build_cmd  =
-        "$hmmbuild -g --amino -F $hmm_file $alignment_file >>$log_file";
+        my $hmm_build_cmd;
+        #"$hmmbuild -g --amino -F $hmm_file $alignment_file >>$log_file";
+        #SEED alignments come in stockholm, so accomodate this
+	if ($alignment_file =~ m/SEED/) {
+		$hmm_build_cmd = "$hmmbuild --amino $hmm_file $alignment_file >>$log_file";
+	}
+	else { $hmm_build_cmd = "$hmmbuild --amino --informat afa $hmm_file $alignment_file >>$log_file";}
         warn "HMM build $hmm_build_cmd\n";
         system $hmm_build_cmd;
-        my $hmm_calibrate_cmd =
-        "/usr/local/bin/hmmcalibrate --num 1000 $hmm_file >> $log_file";
-        warn "HMM calibrate $hmm_calibrate_cmd\n";
-        system $hmm_calibrate_cmd;
+        #my $hmm_calibrate_cmd =
+        #"/usr/local/bin/hmmcalibrate --num 1000 $hmm_file >> $log_file";
+        #warn "HMM calibrate $hmm_calibrate_cmd\n";
+        #system $hmm_calibrate_cmd;
         $self->set_hmm_file($hmm_file);
         return $self;
     }
@@ -135,7 +146,8 @@ package miniHMM::HmmModel;
         my $hmm_file      = $self->get_hmm_file;
         my $hits_file     = "$hmm_file.hits";
         my $evalue_cutoff = $self->get_evalue_cutoff || 10;
-        my $hmm_cmd = "$hmmsearch -E $evalue_cutoff $hmm_file $db > $hits_file 2> $hmm_file.err";
+        #my $hmm_cmd = "$hmmsearch -E $evalue_cutoff $hmm_file $db > $hits_file 2> $hmm_file.err";
+        my $hmm_cmd = "$hmmsearch -E $evalue_cutoff --notextw --domtblout $hits_file $hmm_file $db > $hmm_file.out 2> $hmm_file.err";
         warn "HMM command: $hmm_cmd\n";
         my $res = system($hmm_cmd);
         $res >>= 8;
@@ -177,17 +189,22 @@ package miniHMM::HmmModel;
         my $cutoff  = shift;
         my $hit_set = $self->{hits};
         if ( !$hit_set ) {
-            if ( !$self->get_htab_file ) {
-                $self->create_htab_file;
-            }
-            my $htab = $self->get_htab_file;
-            open my $fh, "<", $htab;
+            #if ( !$self->get_htab_file ) {
+            #    $self->create_htab_file;
+            #}
+            #my $htab = $self->get_htab_file;
+            my $hits_file = $self->get_hits_file;
+            #open my $fh, "<", $htab;
+            open my $fh, "<", $hits_file;
             my @hits;
             while ( my $line = <$fh> ) {
+		if ($line =~ /^#/) {next;}    
                 chomp $line;
+		$line =~ s/\s+/\t/g;
                 my $fields;
                 @$fields{@htab_file_fields} = split /\t/, $line;
                 my $hit = _Hit->new($fields);
+		if ( $hit->number_of > 1 ) {next;}
                 push @hits, $hit;
             }
             $self->set_hits( \@hits );
@@ -214,6 +231,9 @@ package miniHMM::HmmModel;
         my $cutoff = shift;
         my @profile_hits;
         my @ignore_hits;
+	if ( not defined $cutoff) {
+		return _Profile->new();
+	}
         if ( @_ == 2 and ref( $_[0] ) eq 'ARRAY' ) {
             @profile_hits = @{ $_[0] };
             @ignore_hits  = @{ $_[1] };
@@ -329,6 +349,8 @@ package miniHMM::HmmModel;
         my $backup_score;
         my $last_score;
         my $this_score;
+	my $below_specificity = 0;
+	
         foreach my $hit ( $self->get_hits ) {
             next if ( $ignore_set{ $hit->hit_accession } );
 
@@ -350,9 +372,9 @@ package miniHMM::HmmModel;
                 my $hit_start     = $hit_to_parent->hit_start;
                 my $percent = ( $hit_end - $hit_start ) / $parent_length * 100;
 
-                if (   $percent <= 85
-                    || $hit_to_parent->gap_start >= 10
-                    || $hit_to_parent->gap_end >= 10 )
+                if (   $percent <= 85 )
+                   # || $hit_to_parent->gap_start >= 10
+                   # || $hit_to_parent->gap_end >= 10 )
                 {
                     print "short or truncated below-noise hit\n",
                     $hit->hit_accession;
@@ -427,9 +449,10 @@ package miniHMM::HmmModel;
 
                 # print "Less than specificity threshold\n";
                 last;
+		$below_specificity = 1;
             }
 
-# elsif ($match_count == $used_profile_count) { # if we've hit every possible profile, don't bother continuing
+ #elsif ($match_count == $used_profile_count) { # if we've hit every possible profile, don't bother continuing
 #     $last_score = $hit->total_score;
 #     last;
 # }
@@ -445,8 +468,15 @@ package miniHMM::HmmModel;
     # 	print "This: $this_score\tLast: $last_score\tBackup: $backup_score\n";
         }
 
-        if ( $this_score == $last_score ) {
+        if ( !$last_score ) {
+	
+	   return [ undef , @blast_filtered];
+	
+	}
 
+        elsif ($below_specificity && $this_score == $last_score ) {
+
+            $below_specificity = 0;
             #	print "\nReturn backup_score: $backup_score\n\n";
             return [ $backup_score, @blast_filtered ];
         }
@@ -455,6 +485,8 @@ package miniHMM::HmmModel;
             #	print "\nReturn last_score: $last_score\n\n";
             return [ $last_score, @blast_filtered ];
         }
+
+
     }
 
     sub get_cutoff_for_sensitivity {
@@ -562,9 +594,14 @@ package _Hit;
     use strict;
     use warnings;
     use base qw(Class::Accessor);
+#    my @FIELDS = qw/
+#    hit_accession hit_start hit_end gap_start gap_end hmm_start hmm_end domain_score
+#    total_score domain_num total_domains hit_desc total_escore domain_escore
+#    /;
     my @FIELDS = qw/
-    hit_accession hit_start hit_end gap_start gap_end hmm_start hmm_end domain_score
-    total_score domain_num total_domains hit_desc total_escore domain_escore
+    hit_accession empty_accession_target target_length accession empty_accession_hmm query_len full_evalue 
+    total_score full_bias number_of number_total domain_cevalue domain_ievalue domain_score domain_bias 
+    hmm_from hmm_to hit_start hit_end env_from env_to acc target_description
     /;
     __PACKAGE__->mk_ro_accessors(@FIELDS);
 
