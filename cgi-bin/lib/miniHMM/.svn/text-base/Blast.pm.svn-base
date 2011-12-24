@@ -19,12 +19,13 @@ my @qsub_cmd = qw(/usr/local/sge_current/bin/lx24-amd64/qsub -P 0116 -l fast -sy
 my $blastp_cmd = '/usr/local/bin/blastp';
 my @blast_options = qw/W=10 gapE=2000 warnings notes/;
 $ENV{BLASTMAT} = '/usr/local/packages/blast2/matrix';
-my $yank_cmd = '/usr/local/common/yank_panda';
+my $yank_cmd = '/usr/local/bin/cdbyank';
 
 sub _yank_accession {
     my $accession = shift;
+    my $db_file = shift;
     my ($min_acc) = $accession =~ /^([^\|]+\|[^\|]+)/; # get db/first accession
-    open my $yank_in, '-|', ($yank_cmd, '-a', $min_acc);
+    open my $yank_in, '-|', ($yank_cmd, $db_file.'.cidx', '-a', $min_acc);
     local $/ = undef;
     my $fasta = <$yank_in>;
     if ($fasta =~ /Found 0 results/) {
@@ -56,7 +57,7 @@ sub get_fasta_file {
     
     my $fasta;
     eval {
-        $fasta = _yank_accession($accession);
+        $fasta = _yank_accession($accession,$db);
     };
     if ($@ or !$fasta) {
         $fasta = _search_accession($accession, $db);
@@ -117,7 +118,7 @@ sub blast_for_relative {
         while (my $hit = $search->next_hit ) {
             my $hit_acc = $hit->accession;
             my $hit_desc = $hit->description;
-            my ($organism) = $hit_desc =~ / \{ ([^\}]+) \} /x; # i.e. anything between { and }
+	    my ($organism) = $hit_desc =~ / \[ ([^\]]+) \] /x; # i.e. anything between { and }
             my ($genus, $species) = split (/\s+/, $organism);
             $species = "$genus $species";
             print "  hit: $hit_acc ($species)\n";
@@ -153,7 +154,7 @@ sub blast_for_relative {
     }
     elsif ($top_hits[0]) {
         # return the top non-self hit if we didn't find anything outside the species
-        return $top_hits[0]->{hit};
+        return $top_hits[0]->{hit}->accession();
     }
     else {
         return;

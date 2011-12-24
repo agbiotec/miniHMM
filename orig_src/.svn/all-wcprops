@@ -1,29 +1,29 @@
 K 25
 svn:wc:ra_dav:version-url
-V 38
-/CLOSURE/!svn/ver/959/miniHMM/orig_src
+V 47
+/CLOSURE/!svn/ver/1021/miniHMMcustomDB/orig_src
 END
 mini_htab_parser.pl
 K 25
 svn:wc:ra_dav:version-url
-V 58
-/CLOSURE/!svn/ver/959/miniHMM/orig_src/mini_htab_parser.pl
+V 67
+/CLOSURE/!svn/ver/1021/miniHMMcustomDB/orig_src/mini_htab_parser.pl
 END
 mini_me.pl
 K 25
 svn:wc:ra_dav:version-url
-V 49
-/CLOSURE/!svn/ver/959/miniHMM/orig_src/mini_me.pl
+V 58
+/CLOSURE/!svn/ver/1021/miniHMMcustomDB/orig_src/mini_me.pl
 END
 mini_evaluate.pl
 K 25
 svn:wc:ra_dav:version-url
-V 55
-/CLOSURE/!svn/ver/959/miniHMM/orig_src/mini_evaluate.pl
+V 64
+/CLOSURE/!svn/ver/1021/miniHMMcustomDB/orig_src/mini_evaluate.pl
 END
 mini_hmmsearch.pl
 K 25
 svn:wc:ra_dav:version-url
-V 56
-/CLOSURE/!svn/ver/959/miniHMM/orig_src/mini_hmmsearch.pl
+V 65
+/CLOSURE/!svn/ver/1021/miniHMMcustomDB/orig_src/mini_hmmsearch.pl
 END
