@@ -1,0 +1,12 @@
+--- /usr/local/common/hmmsearch_wrapper	2006-10-11 16:03:34.955227000 -0400
++++ hmmsearch_wrapper	2007-04-27 14:30:49.085596000 -0400
+@@ -45,7 +45,7 @@ if ($debug) {
+ $blocksize =~ tr/0-9//cd;
+ $process =~ tr/0-9//cd;
+ $blocksize = int($blocksize);
+-$process = int($process);
++$process = int($process) - 1; # Convert 1-based process # to 0-based for offset calculation
+ 
+ if ($blocksize <= 0) {
+    die "Blocksize must be a positive integer, stopped";
+

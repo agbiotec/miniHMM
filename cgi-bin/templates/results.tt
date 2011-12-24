@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel='stylesheet' type='text/css' href='/minihmm/css/s_apprentice.css' />
+<title>Sorcerers's Apprentice Results</title>
+</head>
+<body>
+	<h1>Sorcerer's Apprentice Results</h1>
+	<p>
+		<a href='../download/[%session%]'>Download Zip file of all results</a> (Stored at [% output_dir %])
+	</p>
+	<table border='1'>
+		<thead>
+			<tr>
+				<th>Mini-Model Name</th>
+				<th>Upper Score Cutoff</th>
+				<th>Lower Score Cutoff</th>
+				<th>% Specificity</th>
+				<th>% Sensitivity</th>
+				<th>Match Count ([% seed_hits %])</th>
+				<th>Miss Count</th>
+				<th>Skip Count</th>
+				<th>Range</th>
+			</tr>
+		</thead>
+		<tbody>
+			[%- FOREACH profile_mini IN profiles_by_mini %]
+				[%- IF loop.count % 2 == 1 %]
+				   [%- SET background_color = '#CCCCFF' %]
+				[%- ELSE %]
+				   [%- SET background_color = '#FFFFFF' %]
+				[%- END	%]
+			[%- FOREACH profile IN profile_mini.profiles %]
+			<tr style='background-color: [% background_color %]'>
+				[%- IF loop.count == 1 %]
+				<td rowspan='[% profile_mini.profiles.size %]'>[% profile_mini.mini_name %]</td>
+				[%- END %]
+				<td>[% profile.upper_cutoff_score FILTER format('%4.2f') %]</td>
+				<td>
+					[%- IF profile.lower_cutoff_score.defined %]
+					[% profile.lower_cutoff_score FILTER format('%4.2f') %]
+					[%- ELSE %]
+					<i>&lt;none&gt;</i>
+					[%-END %]
+				</td>
+				<td>[% profile.specificity FILTER format('%02.1f') %]</td>
+				<td>[% profile.sensitivity FILTER format('%2.1f') %]</td>
+				<td>[% profile.matches.size %]</td>
+				<td>[% profile.misses.size %]</td>
+				<td>[% profile.ignored.size %]</td>
+				[%- IF loop.count == 1 %]
+				<td rowspan='[% profile_mini.profiles.size %]'>[% profile_mini.mini_range %]</td>
+				[%- END %]
+			</tr>
+			[%- END %]
+			[%- END %]
+		</tbody>
+	</table>
+	[%- IF debug %]
+	<!--
+		[%- debug -%]
+	--->
+	[%- END %]
+</body>
+</html>

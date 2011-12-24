@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/CLOSURE/!svn/ver/1011/miniHMM/cgi-bin/templates
+END
+results.tt
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/CLOSURE/!svn/ver/1011/miniHMM/cgi-bin/templates/results.tt
+END
+waiting.tt
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/CLOSURE/!svn/ver/1011/miniHMM/cgi-bin/templates/waiting.tt
+END
+query.tt
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/CLOSURE/!svn/ver/1011/miniHMM/cgi-bin/templates/query.tt
+END

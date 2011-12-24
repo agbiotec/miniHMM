@@ -1,0 +1,134 @@
+Request 1: 
+
+The manual task goes like this:
+
+Currently, for each mini-model, the list of hits is parsed from the 
+strongest downwards until a hit is found which does not correspond to 
+an above-trusted hit to the full length model.
+
+At this point an evaluation has to be implemented:
+
+1) Test 1: Is the hit truncated (relative to the full length model) at either the N- or C-terminus.
+
+2) If it appears to be a truncated by Test 1, look to BLAST results 
+for this gene and determine whether the best BLAST match is itself an 
+above trusted hit to the full length HMM model (Test 2).
+
+3) If the gene passes Test 2, then ignore it in the normal flow of the 
+program and go to the next hit in the mini-HMM hit list.
+
+4) If the gene fails either Test 1 or Test 2, it is appropriate to 
+continue the normal flow of the program, that is, evaluate the 
+effectiveness of the mini-HMM at this point.
+
+
+Methods:
+
+Test 1:  In the "...HMM.hits" file for each full-length HMM, the 
+matches for each gene have alignments.  A proper, non-fragment 
+N-terminal hit would look like this (the upper line is the model, the 
+middle line shows the match, the bottom line is the sequence of the 
+gene in question.  The "*" in the upper line indicates the N-terminal 
+end of the model):
+
+                    *->TGiGFLDHMLdqLakHggfdLkvqakGDhetLhIDdHHTiEDtAiAL
+                       TG  F+DHML   a+ +g dL++ a+GD   L    HH  ED+Ai+L
+    MXAN_4225    28    TGLKFFDHMLATFARYAGLDLSLHARGD---LT---HHVMEDVAITL 68 
+>
+>
+> A fragment might look like this:
+>
+>                    *->TGiGFLDHMLdqLakHggfdLkvqak.......GDhetLhIDdHHTi
+>                                  +L   +g+d +v+a++++    GD e Lh  d   +
+>   NTL01HS055    51    -----------ALCQFAGIDERVIAEnggvayvGD-ELLHFGDSRAV 85  
+>
+>
+Unfortunately, it is not alway true that a fragment will have the gap 
+characters "-" all lined up nicely at the front of the sequence, since 
+a mismatch might align erroneously there such as:
+>
+>
+>                    *->TGiGFLDHMLdqLakHggfdLkvqak.......GDhetLhIDdHHTi
+>                       ++              +g+d +v+a++++    GD e Lh  d   +
+>   NTL01HS055    51    SA-----------CQFAGIDERVIAEnggvayvGD-ELLHFGDSRAV 85  
+>
+>
+Luckily this is not a serious problem, in the sense that if we 
+establish an algorithm to detect fragments and it classifies too many 
+things as fragments, the only downside is that more genes than 
+necessary will be evaluated by Test 2, i.e. things will be slower.
+
+So I would suggest that if 10 of the first (or last) 30 amino acids in 
+the alignment are gap characters then Test 1 should be satisfied.
+
+Test 2:  For the current pipeline, the evaluation database is the 
+OMNIOME (/usr/local/db/omnium/internal/OMNIOME.pep) for which a BLAST 
+all_vs_all table exists summarizing the results of pre-calculated 
+BLASTs.  So you can start with a "locus" (the gene in question) and 
+query out the top blast hits as follows:
+
+select accession
+> from omnium..all_vs_all
+> where locus = "$locus"
+> and locus != accession
+> and match_order < 10
+> order by match_order
+>
+this will give the top 9 hits (10 - the hit to itself)
+
+Now you just need to check if the hit at the top of this list is above 
+trusted to the full length HMM.  This info should already be stored in 
+a hash in the program.
+
+
+Request 2:
+
+The implementations you made look fine, thanks alot.  Are these running off of the all-vs-all table?  We have to remember that we have to plug in a module for handling non-OMNIUM accessions by actually running BLAST for ourselves.
+
+One request, could you combine the "ignored_hits" file and the "blast_filtered..." file and provide some kind of descriptive flag as a third tab-delimited column indicating the reason why the item was ignored?
+
+
+Request 3:
+
+1. If the sequence we are testing is between above noise to the parent model and shorter than the model by (INSERT CRITERIA HERE), we ignore it.
+
+2. If the sequence is below noise and full-length relative to the parent model it must be kept (process ends)
+
+3. If the sequence is below noise and short (INSERT CRITERIA HERE) we run a BLAST search.  If the top (non-self) hit is above the trusted cutoff to the parent model the sequence is classified as a fragment and ignored.  If the top hit is below noise, it must be kept (process ends).  If the top hit is between trusted and noise, go to the next one in the BLAST list and check that.
+
+Question:
+You said "if the sequence is below noise and short we run a blast search". What do you want to do with the sequence that is a hit to a mini-model but not a hit at all to the parent model? 
+Answer:
+We still need to run a BLAST in the case of a short sequence that is a "non-hit" to the parent model.  These short hits may fall below the E-value cutoff for the model and be lost, but will still screw up the calibration if we do not remove them.  We cannot just skip them, because it is more likely that they are truly junk, so the BLAST must be done.
+
+
+Request 4: 
+
+What I've seen so far looks good.
+
+I have found one issue that I thought would show up, though.
+
+Look at the PF00873 example, the sticky hit for mHMM 03 is NTL02LI3738.  This is clearly a fragment.  When you run a BLAST on this one, it picks up the match to NTL03LI0474 as the top hit (i.e. the self-match is the second hit).  Why, because these two are identical over the whole length of NTL02LI3738, so its just as likely to be first as second.  Have you implemented a screen which just ignores the top hit?
+
+What we need is a way to ignore all hits from the same species.  When you use yank_panda grab a sequence, the genus species strain information is found within curly braces:
+
+% /usr/local/common/yank_panda --group=pep -a "OMNI|NTL02LI3738"
+
+>RF|NP_713919.1|24216438|NC_004342 acriflavine resistance protein 
+>RF|taxon:189518 {Leptospira interrogans serovar Lai str. 56601;} 
+>RF|(exp=0; wgp=1; cg=1; closed=1; pub=1; 
+>RF|rf_status=provisional;)^|^GB|AAN50937.1|24197736|AE010300 
+>RF|acriflavine resistance protein taxon:189518 {Leptospira interrogans 
+>RF|serovar Lai str. 56601;} (exp=0; wgp=1; cg=1; closed=1; pub=1; 
+>RF|rf_status=;)^|^OMNI|NTL02LI3738| |24197736| acriflavine resistance 
+>RF|protein taxon:189518 {Leptospira interrogans serovar Lai str. 
+>RF|56601;} (exp=-1; wgp=-1; cg=-1; closed=-1; pub=-1; rf_status= ;)
+MNENRLPSKITTQMIIGAVLLFGVISAFMLNYSLFPVVKNPALSIVVDYPGTDAETVENT
+ITIPLENQVSTIGGISEIRSTSEKGKSLIRLDFENDTNIDVKTLEIKERIETIINTFPKE
+VRKPRVLNFDPNEMPIAVISLNATDSRSLGELRAFADSIVKKDIEGINGVSKVTVSGGKI
+KEILISFDIRKLNSYNIRLADINEAIYFNNRTSTIASVEEKGGLYQVRLKGKFSKLDDLV
+DLPISSPDIGKSITLGNVANIQNSYRDEDSTYRVNGNQNIGIYVYKKYDANILSISSEIK
+KTVSHLSQDGTKFDLL
+
+If you extracted the first two words from that field, "Leptospira interrogans", you could do pattern matching to test each hit, eliminating matches, and only evaluating the first non-match.
+

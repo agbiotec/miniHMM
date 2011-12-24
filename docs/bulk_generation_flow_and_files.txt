@@ -1,0 +1,100 @@
+Bulk Generation:
+    config file:
+        summary directory root
+        working directory root
+        parameters file name
+        
+    primary script:
+        parameters: 
+            list of HMM IDs
+            fragment length
+            fragment overlap
+            database
+            hmmsearch cutoff override
+            ||ise hmmsearch or mini generation/eval
+        if # of hmms <= 3, then ||ise hmmsearch
+        foreach hmm
+            get alignment file name
+            create summary directory :
+                start with $base_path/$hmm_id/"${length}_${overlap}"/
+                then append version subdirectory. format is 'v.%2d'
+                    if none found, then v.01, else n+1
+                (so final dir is $base_path/hmm_id/"${length}_${overlap}/v.$n )
+            create temporary working directory
+                /usr/local/scratch/miniHMM/...
+            create parameter files in working dir
+            get trusted cutoff
+            get noise cutoff
+            if || hmmsearch, then
+                foreach hmm id
+                    in background, run runner_script w/ phmmsearch flag
+            otherwise, 
+                create parameter files in a temp dir
+                submit as HTCrequest w/ array param for the parameter files
+    runner_script
+        parameters
+            3 options:
+                all parameters from cmd line
+                working directory passed w/ parameters file in dir
+                parameters file name passed w/ all parameters listed
+            working directory defaults to pwd
+            config-file name
+            [
+                results directory
+                hmm alignment file name
+                fragment length
+                fragment overlap
+                database
+                hmmsearch cutoff override
+            ]
+            flag for || hmmsearch
+        if config-file, read parameters in
+        see if we can continue where we left off:
+            parameters file in working dir matches parameters
+                if not, write parameters file
+            check for mini alignment files (from parameters file)
+                if not, create, write names into parameters file
+            check for mini HMM files
+                for each not, create
+            check for HMM search results
+                if not exist or exist 0-byte output files:
+                    if || flag
+                        create file listing missing minis
+                        run phmmsearch on those (remember e-value cutoff)
+                    else run hmmsearch on those (remember e-value cutoff)
+            htab and load the htab files
+            check for profile results files
+                if not, create to 100% specificity
+            create sticky_hits and summary files
+            copy mini alignments, hmm files, and summary file to results directory
+
+files produced:
+    parameters file: YAML file w/
+        run-time parameters:
+            working directory
+            results directory
+            base alignment file
+            fragment length
+            fragment overlap
+            database
+            hmmsearch e-value cutoff
+            parallel hmmsearch flag
+        mini information:
+            mini_name: coords_on_parent
+    mini_file_profile results files : tab-delimited list of hits
+        accession
+        score
+        match/miss/ignore (for those evaluated)
+        override_reason (if overridden)
+        specificity (at bottom of equivalence group)
+        sensitivity (at bottom of equivalence group)
+    sticky hits file: tab delimited list of misses at 100% spec lower score cutoff
+        accession   mini_id 
+    summary output: tab delimited list of
+        mini_name
+        coords_on_parent
+        upper score cutoff
+        lower score cutoff
+        sensitivity_at_100%_specificity
+        
+                

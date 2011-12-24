@@ -1,0 +1,40 @@
+--- /home/sgeworker/lib/TIGR/HTCRequest/ProxyServer.pm	2006-06-29 16:25:01.000000000 -0400
++++ ProxyServer.pm	2007-04-30 09:46:14.734639000 -0400
+@@ -285,33 +285,11 @@ B<Returns:> $id, id of request submitted
+ sub submit_and_wait {
+     $logger->debug("In submit_and_wait.");
+     my ($self, $request) = @_;
+-    my $id = -1;
+-    my $result;
+ 
+-    $id = $self->_createCmdID();
+-    $logger->debug("Setting ID to $id.");
+-    $request->set_id($id);
+-    $request->_com_obj->submit_url($self->{daemon}->url() . "RPC2");
+-
+-    # check if we should send the environ and then submit
+-    if($request->get_getenv() ) {
+-	my @envp = $request->_get_env_list();
+-	$result = $self->_submit($request->to_xml(), $self->{daemon}->url() . "RPC2", \@envp);
+-    } else {
+-	$result = $self->_submit($request->to_xml(), $self->{daemon}->url() . "RPC2");
+-    }
+-
+-    # check returned id 
+-    if ($id < 1) {
+-        $logger->fatal("Job request rejected by $self->{server_url}. ",
+-                       "Request was ", $request->to_xml());
+-        $request->set_message("Job request rejected by server at $self->{server_url}.");
+-    }
+-
+-    #set id returned by server
+-    #$request->set_id($id);
+-
+-    # now wait
++    # submit
++    my $id = $self->submit($request);
++    $logger->info("Request Submitted. ID is $id");
++    # and wait
+     $self->wait_for_request($request);
+ 
+     return $id;

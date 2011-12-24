@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Sorcerer's Apprentice</title>
+</head>
+<body>
+	<div id='title'>Sorcerer's Apprentice</div>
+	<div class='main'>
+		<form  action="#" method="post" name='hmm_params' id='hmm_params'>
+			<fieldset id='hmm_model_fields'>
+				<label>Seed HMM model: <input type='file' name='seed_hmm_model' /></label>
+				<label>Trusted cutoff: <input type='text' name='seed_trusted_cutoff' /></label>
+			</fieldset>
+			<fieldset id='calibration_db'>
+				<label>Calibration Database: 
+					<select name="calibration_db_select">
+						<option value='NIAA'>NIAA</option>
+						<option value=''>Manual</option>
+					</select>
+				</label>
+				<label>or path to (globally readable) Protein Fasta DB: 
+					<input type='text' name='calibration_db_path' />
+				</label>
+			</fieldset>
+			<fieldset id='mini_model_params'>
+				<label id='l_segmentation_method'>Segmentation Method: 
+					<select name='segmentation_method' id='segmentation_method'>
+						<option value='pairs'>C-term/N-term pairs</option>
+						<option value='tiles'>Tiling models</option>
+					</select>
+				</label>
+				<label id='l_mini_model_length'>Model Length: 
+					<select name='mini_model_length'>
+						<option value='24'>24 AAs (for 100 bp 454 data)</option>
+						<option value='50'>50 AAs (for 200-250 bp 454 data</option>
+						<option value='100'>100 AAs (for single-read ABI data</option>
+					</select>
+				</label>
+				<label id='l_mini_model_length_text'>or Manual Model Length
+					<input type='text' name='mini_model_length' />
+				</label>
+				<label id='l_mini_model_overlap'>Model overlap (for tiling): 
+					<input type='text' name='mini_model_overlap' />
+				</label>
+			</fieldset>
+			<fieldset>
+				<input type='reset' value='Reset' /> <input type='submit' value='Submit' />
+			</fieldset>
+		</form>
+	</div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTCRequest
+END
+ProxyServer_submit_and_wait.patch
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTCRequest/ProxyServer_submit_and_wait.patch
+END
+ProxyServer.pm
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTCRequest/ProxyServer.pm
+END
+Command.pm
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTCRequest/Command.pm
+END
+CommandStatus.pm
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/CLOSURE/!svn/ver/961/miniHMM/phmmsearch/lib/TIGR/HTCRequest/CommandStatus.pm
+END

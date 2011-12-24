@@ -1,0 +1,50 @@
+Plan for construction of "Sorcerer's Apprentice" tool webpage
+
+
+INPUTS:
+	Path to hmm seed file (in msf format  -- may need a format converter for eventual public release?)
+paste box
+browse button
+
+Trusted cutoff value
+
+Path to (and/or choose from drop down) target database for calibration
+	Default: NIAA
+
+Choose segmentation method (drop-down)
+C-term & N-term pairs
+Tiling models
+Also need a select box for the tiling overlap parameter for this one
+
+Choose model length
+drop down with pre-sets and manual input box
+24 amino-acid (for 100bp 454 data)
+50 amino-acid (for 200-250 bp 454 data)
+100 amino-acid (for single-read ABI data)
+
+Output file directory
+
+OUTPUTS:
+	For each mini-model:
+HMM file
+SEED file
+Htab output file
+Summary calibration file with cutoffs for each specificity level and the corresponding observed sensitivity
+
+Graphical view of conservation over length of original model and sensitivity at a given specificity for each of the tiling models
+
+
+
+
+METHOD:
+	
+1)Read in SEED msf file
+2)Gap filter
+3)Parse into 
+
+NOTE: Is there a way to track and record where each mini model maps to the original full-length seed
+
+NOTE: Hits to the original full-length model above trusted cutoff BUT fragmentary, should be ignored for calibration purposes.
+
+Files: /home/Selengut/bin/mini_me.pl
+	/home/selegut/bin/mini_evaluate.pl	

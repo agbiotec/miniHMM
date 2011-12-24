@@ -1,0 +1,44 @@
+--- /usr/local/common/phmmsearch	2005-10-12 16:05:10.425095000 -0400
++++ phmmsearch	2007-05-01 16:40:05.684672000 -0400
+@@ -45,6 +45,7 @@ GetOptions ( \%options,
+            'minus-profiles|m:s',
+            'outdir|o:s',
+            'sequence:s',
++           'known_seq!',
+            'username:s',
+            'usage',
+            'version|v',
+@@ -95,10 +96,12 @@ if (defined($options{conf})) {
+     $options{username}         ||= $cfg->val($section, "username");
+     $options{htab}             ||= $cfg->val($section, "htab");
+     $options{wait}             ||= $cfg->val($section, "wait");
+-
++    $options{known_seq}        ||= $cfg->val($section, "known_seq");
++    
+     my $truth_regex = qr/^(yes|true|on|1)$/i;
+     $options{htab} = ($options{htab} =~ m/$truth_regex/) ? 1 : 0;
+     $options{wait} = ($options{wait} =~ m/$truth_regex/) ? 1 : 0;
++    $options{known_seq} = ($options{known_seq} =~ m/$truth_regex/) ? 1 : 0;
+ }
+ 
+ # Set the debug level (by name or number).
+@@ -130,7 +133,7 @@ push (@errors, "Group to associate the j
+ 
+ # Use TIGR::FASTAreader to validate the sequence file.
+ my $tigr_fasta = TIGR::FASTAreader->new(\@errors, $options{sequence})
+-    if $options{sequence};
++    if ($options{sequence} and !$options{known_seq});
+ 
+ if (scalar(@errors)) {
+     my $error = join("\n", @errors);
+@@ -331,6 +334,10 @@ sub usage {
+     -o --outdir=<dir>              Output directory.
+ 
+     -s --sequence=<file>           Sequence Fasta File
++    
++    --known_seq                    Toggle if the Sequence file is known to be good
++                                   and validation should be skipped.
++                                   Default is to validate.
+ 
+     -u --username=<username>       Username to submit the request as.
+ 

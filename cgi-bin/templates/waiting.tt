@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <link rel='stylesheet' type='text/css' href='/minihmm/css/s_apprentice.css' />
+  <meta http-equiv="Refresh" content="120" ,="">
+  <title>Waiting...</title>
+
+
+</head>
+<body>
+
+<h1>Waiting...</h1>
+
+<p>Hmmsearches are running. Please wait.</p>
+
+<p>
+Started [% ctime %]. Last Updated at [% time %]. Status was [% status %] <br />
+
+This page should refresh in in 2 minutes.
+If not, click to <a href="../[% mode %]/[% session %]">Refresh</a>
+</p>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+---
+gap_filter_percent: 25
+evalue_cutoff: 100
+seg_method:
+  - name: Tiling models
+    type: tiles
+  - name: 'C-/N- Terminal pairs'
+    type: pairs
+seq_dbs:
+  - name: NIAA
+    short_name: niaa
+    path: /usr/local/db/panda/AllGroup/AllGroup.niaa
+  - name: NRAA
+    short_name: nraa
+    path: /usr/local/db/panda/nraa/nraa
+  - name: OMNIUM
+    short_name: omnium
+    path: /usr/local/db/omnium/pub/OMNIOME.pep
+  - name: Internal OMNIUM
+    short_name: iomnium
+    path: /usr/local/db/omnium/internal/OMNIOME.pep
+## DB_File
+# session_params:
+#   FileName: /usr/local/scratch/s_apprentice/sessions.bdb
+# session_type: driver:db_file;serializer:storable
+## file
+session_params:
+    Directory: /tmp/s_apprentice
+## SQLite
+# session_params:
+#     DataSource: /usr/local/scratch/s_apprentice/sessions.sqlt
+# session_type: driver:sqlite;serializer:storable
+
+# temp_dir: /usr/local/scratch/s_apprentice
+temp_dir: /usr/local/annotation/CAMERA/selengut
+template_dir: templates
+
+## MiniHMM bulk creation parameters
+default_parameters_file_name: parameters.yaml
+results_directory_root: /local/gosii/miniHMM
+# results_directory_root: /usr/local/scratch/minihmm/results
+working_directory_root: /usr/local/scratch/minihmm/working
+hmm_source_dir: /usr/local/db/HMM_IND
+minimum_hmms_for_grid: 5
+project_id: 04033
+block_size: 1
+
