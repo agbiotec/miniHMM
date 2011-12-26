@@ -4,6 +4,7 @@ package miniHMM::HmmModel;
     use warnings;
     use strict;
     use Carp;
+    use Cwd;
 
     use base qw(Class::Accessor);
 
@@ -148,10 +149,11 @@ package miniHMM::HmmModel;
         my $evalue_cutoff = $self->get_evalue_cutoff || 10;
         #my $hmm_cmd = "$hmmsearch -E $evalue_cutoff $hmm_file $db > $hits_file 2> $hmm_file.err";
         #my $hmm_cmd = "$hmmsearch -E $evalue_cutoff --notextw --domtblout $hits_file $hmm_file $db > $hmm_file.out 2> $hmm_file.err";
-        my $hmm_cmd_string = "$hmmsearch -E $evalue_cutoff --notextw --domtblout $hits_file $hmm_file $db > $hmm_file.out 2> $hmm_file.err";
-        system("echo $hmm_cmd_string > sge_command.sh");
-        system("chmod u+x sge_command.sh");
-        my $hmm_cmd = "/opt/sge/bin/lx24-amd64/qsub -b yes -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 sge_command.sh"; 
+        my $cwd = getcwd();
+        my $hmm_cmd_string = "$hmmsearch -E $evalue_cutoff --notextw --domtblout ".$cwd."/$hits_file ".$cwd."/$hmm_file $db > $hmm_file.out 2> $hmm_file.err";
+        system("echo $hmm_cmd_string > sge_command.".$hmm_file.".sh");
+        system("chmod u+x sge_command.".$hmm_file.".sh");
+        my $hmm_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 ".$cwd."/sge_command.".$hmm_file.".sh"; 
         warn "HMM command: $hmm_cmd\n";
         my $res = system($hmm_cmd);
         $res >>= 8;
