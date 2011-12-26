@@ -9,13 +9,13 @@ use base 'Exporter';
 our @EXPORT_OK = qw/blast_for_relative/;
 
 # constants
-$ENV{SGE_ROOT} = '/opt/sge/bin/lx24-amd64';
-$ENV{SGE_EXECD_PORT} = '6445';
-$ENV{SGE_QMASTER_PORT} = '6444';
-$ENV{SGE_CELL} = 'jcvi';
-$ENV{SGE_CLUSTER_NAME} = 'p6444-jcvi';
+#$ENV{SGE_ROOT} = '/opt/sge/bin/lx24-amd64';
+#$ENV{SGE_EXECD_PORT} = '6445';
+#$ENV{SGE_QMASTER_PORT} = '6444';
+#$ENV{SGE_CELL} = 'jcvi';
+#$ENV{SGE_CLUSTER_NAME} = 'p6444-jcvi';
 
-my @qsub_cmd = qw(/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42);
+my @qsub_cmd = qw(/opt/sge/bin/lx24-amd64/qsub -b yes -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42);
 #my @qsub_cmd = '';
 #my $blastp_cmd = '/usr/local/bin/blastp';
 my $blastp_cmd = 'blastall -p blastp';
@@ -25,12 +25,12 @@ my @blast_options = '-W 5';
 #$ENV{BLASTMAT} = '/usr/local/packages/blast/data/';
 
 my $yank_cmd = '/usr/bin/cdbyank';
-open my $yank_in, '-|', ($yank_cmd, $db_file.'.cidx', '-a', $min_acc);
 sub _yank_accession {
     my $accession = shift;
     my $db_file = shift;
     my ($min_acc) = $accession =~ /^([^\|]+\|[^\|]+)/; # get db/first accession
     local $/ = undef;
+    open my $yank_in, '-|', ($yank_cmd, $db_file.'.cidx', '-a', $min_acc);
     my $fasta = <$yank_in>;
     if ($fasta =~ /Found 0 results/) {
          $fasta = undef;
