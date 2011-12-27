@@ -667,12 +667,30 @@ package miniHMM::HmmCommand;
         # do hmm evaluation on all models (seed and mini-models);
         warn "Running hmmsearches\n";
         $self->run_hmmsearches();
+        my $qstat = `qstat`;
+        while (length($qstat) > 0) {
+              $qstat = `qstat`;
+              print "\n ************************ \n Hmmsearch jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
+              sleep(60);
+        }
+
         if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
 		die "Seed HMM has no hits to specified database!\n";
 	}
 
         # generate profiles
         $self->generate_profiles();
+        my $qstat = `qstat`;
+        while (length($qstat) > 0) {
+              $qstat = `qstat`;
+              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
+              sleep(60);
+        }
+
+        if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
+		die "Seed HMM has no hits to specified database!\n";
+	}
+
         $self->write_mini_profiles();
 
         $self->write_ignored_hits();

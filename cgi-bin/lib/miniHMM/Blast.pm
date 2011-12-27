@@ -1,6 +1,7 @@
 package miniHMM::Blast;
 use strict;
 use warnings;
+use Cwd;
 use Bio::SearchIO;
 use Memoize;
 use File::Temp qw/tempfile/;
@@ -92,13 +93,20 @@ sub do_blastp {
     
     my $blast_file = "$accession.blastout";
     $blast_file =~ s/[^\w\.\_]+/_/g;
-    my @cmd = (@qsub_cmd, $blastp_cmd, $db, $fasta_file, @blast_options, '-o', $blast_file);
-    warn "blast command: ",join(' ', @cmd); 
-    my $res = system(@cmd);
-    if ($res) {
+    #my @cmd = (@qsub_cmd, $blastp_cmd, $db, $fasta_file, @blast_options, '-o', $blast_file);
+    my @cmd = ($blastp_cmd, $db, $fasta_file, @blast_options, '-o', $blast_file);
+    my $blast_cmd = join(' ', @cmd); 
+    #warn "blast command: ", $blast_cmd;
+    my $cwd = getcwd();
+    system("echo  > sge_command.".$fasta_file.".sh");
+    system("chmod u+x sge_command.".$fasta_file.".sh");
+        my $sge_blast_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 ".$cwd."/sge_command.".$fasta_file.".sh";
+    #my $res = system(@cmd);
+    #system($sge_blast_cmd);
+    #if ($res) {
     #if (!$?==0) {
-        die "Blast failed. $!";        
-    }
+    #    die "Blast failed. $!";        
+    #}
     my $search_io = Bio::SearchIO->new(-file=>$blast_file, -format=>'blast');    
     return $search_io; 
 }
