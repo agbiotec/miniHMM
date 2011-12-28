@@ -96,15 +96,17 @@ sub do_blastp {
     my $blast_file = "$accession.blastout";
     $blast_file =~ s/[^\w\.\_]+/_/g;
     #my @cmd = (@qsub_cmd, $blastp_cmd, $db, $fasta_file, @blast_options, '-o', $blast_file);
-    my @cmd = ($blastp_cmd, $db, $fasta_file, @blast_options, '-o', $blast_file);
+    my $cwd = getcwd();
+    #my @cmd = ($blastp_cmd, $db, $fasta_file, @blast_options, '-o', $cwd.'/'.$blast_file);
+    my @cmd = ($blastp_cmd, '-d', $db, '-i', $fasta_file, @blast_options, '-o', $cwd.'/'.$blast_file);
     my $blast_cmd = join(' ', @cmd); 
     #warn "blast command: ", $blast_cmd;
-    my $cwd = getcwd();
     system("echo '".$blast_cmd."' > sge_command.".$fasta_file.".sh");
     system("chmod u+x sge_command.".$fasta_file.".sh");
     my $sge_blast_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 -N ".$fasta_file." -wd ".$cwd." sge_command.".$fasta_file.".sh";
     warn("Blast grid job ::   ".$sge_blast_cmd);
     system($sge_blast_cmd);
+    my $qstat = `qstat`;
     #my $res = system(@cmd);
     #system($sge_blast_cmd);
     #if ($res) {

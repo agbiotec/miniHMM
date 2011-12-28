@@ -680,12 +680,12 @@ package miniHMM::HmmCommand;
 
         # generate profiles
         $self->generate_profiles();
-        my $qstat = `qstat`;
-        while (length($qstat) > 0) {
-              $qstat = `qstat`;
-              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
-              sleep(60);
-        }
+#        my $qstat = `qstat`;
+#        while (length($qstat) > 0) {
+#              $qstat = `qstat`;
+#              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
+#              sleep(60);
+#        }
 
         if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
 		die "Seed HMM has no hits to specified database!\n";
