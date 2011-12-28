@@ -31,9 +31,11 @@ sub _yank_accession {
     my $db_file = shift;
     my ($min_acc) = $accession =~ /^([^\|]+\|[^\|]+)/; # get db/first accession
     local $/ = undef;
-    open my $yank_in, '-|', ($yank_cmd, $db_file.'.cidx', '-a', $min_acc);
+    #open my $yank_in, '-|', ($yank_cmd, $db_file.'.cidx', '-a', $min_acc);
+    open my $yank_in, '-|', ($yank_cmd, $db_file.'.cidx', '-a', $accession);
     my $fasta = <$yank_in>;
     if ($fasta =~ /Found 0 results/) {
+         print "\n\n*** Yanking: $accession \n $min_acc \n $yank_cmd \n $db_file.cidx \n ****\n";
          $fasta = undef;
     }
     close $yank_in;
@@ -98,9 +100,11 @@ sub do_blastp {
     my $blast_cmd = join(' ', @cmd); 
     #warn "blast command: ", $blast_cmd;
     my $cwd = getcwd();
-    system("echo  > sge_command.".$fasta_file.".sh");
+    system("echo '".$blast_cmd."' > sge_command.".$fasta_file.".sh");
     system("chmod u+x sge_command.".$fasta_file.".sh");
-        my $sge_blast_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 ".$cwd."/sge_command.".$fasta_file.".sh";
+    my $sge_blast_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 -N ".$fasta_file." -wd ".$cwd." sge_command.".$fasta_file.".sh";
+    warn("Blast grid job ::   ".$sge_blast_cmd);
+    system($sge_blast_cmd);
     #my $res = system(@cmd);
     #system($sge_blast_cmd);
     #if ($res) {
