@@ -10,6 +10,7 @@ package miniHMM::HmmCommand;
     use Data::Dumper;
     use version;
     our $VERSION = qv( qw$Revision 0.0.1$ [1] );
+    use Threads;
 
     # use lib qw(/usr/local/devel/ANNOTATION/rrichter/miniHMM/cgi-bin/lib);
     use miniHMM::Alignment;
@@ -204,36 +205,48 @@ package miniHMM::HmmCommand;
         # hash to store non-hits and blast match results
         my %non_hits;
         my %blast_results;
+
         foreach my $mini (@minis) {
             my $mini_name = $mini->get_name;
+
 
             foreach my $specificity (@SPECIFICITY_CUTOFFS) {
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
 
-                my $mini_cutoff_filtered =
-                $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
+                my $thread = threads-> create ( $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
                     \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered,
-                    \%blast_results, \%non_hits );
+                    \%blast_results, \%non_hits ), $mini_name, $specificity );
 
+            }
+        }
+
+
+        my $t;
+        while ${Thread->list()}[$t] {
+
+                if !defined($t[0]) {next;}
+                
+                my $mini_cutoff_filtered = $t[0];
+                my $mini_name = $t[1];
+                my $specificity = $t[2];
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
 
-          if (defined($mini_cutoff)) {
-
-                my $all_ignored =
-                [ @manual_length_filtered, @$mini_cutoff_filtered ];
-                my $key_for_ignored =
-                "Blast_filtered\t" . $mini_name . "\t" . $specificity;
-                $ignoreable_hits{$key_for_ignored} = $mini_cutoff_filtered;
-
-                $profiles{$mini_name}{$specificity} =
-                $mini->get_profile_at_cutoff( $mini_cutoff,
-                    \@above_trusted_hits, $all_ignored );
-                if ( $profiles{$mini_name}{$specificity}->sensitivity >= 100 ) {
-                    last;
-                }
-	  }
-	  else {$profiles{$mini_name}{$specificity} = _Profile->new();}
-            }
+                  if (defined($mini_cutoff)) {
+        
+                        my $all_ignored =
+                        [ @manual_length_filtered, @$mini_cutoff_filtered ];
+                        my $key_for_ignored =
+                        "Blast_filtered\t" . $mini_name . "\t" . $specificity;
+                        $ignoreable_hits{$key_for_ignored} = $mini_cutoff_filtered;
+        
+                        $profiles{$mini_name}{$specificity} =
+                        $mini->get_profile_at_cutoff( $mini_cutoff,
+                            \@above_trusted_hits, $all_ignored );
+                        if ( $profiles{$mini_name}{$specificity}->sensitivity >= 100 ) {
+                            last;
+                        }
+        	  }
+        	  else {$profiles{$mini_name}{$specificity} = _Profile->new();}
         }
 
         $self->{profiles}     = \%profiles;

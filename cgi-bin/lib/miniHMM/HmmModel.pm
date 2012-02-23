@@ -153,7 +153,7 @@ package miniHMM::HmmModel;
         my $hmm_cmd_string = "$hmmsearch -E $evalue_cutoff --notextw --domtblout ".$cwd."/$hits_file ".$cwd."/$hmm_file $db > $hmm_file.out 2> $hmm_file.err";
         system("echo $hmm_cmd_string > sge_command.".$hmm_file.".sh");
         system("chmod u+x sge_command.".$hmm_file.".sh");
-        my $hmm_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 ".$cwd."/sge_command.".$hmm_file.".sh"; 
+        my $hmm_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 -N ".$hmm_file." -wd ".$cwd." sge_command.".$hmm_file.".sh"; 
         warn "HMM command: $hmm_cmd\n";
         my $res = system($hmm_cmd);
         $res >>= 8;

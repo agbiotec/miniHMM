@@ -106,7 +106,7 @@ sub do_blastp {
     my $sge_blast_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 -N ".$fasta_file." -wd ".$cwd." sge_command.".$fasta_file.".sh";
     warn("Blast grid job ::   ".$sge_blast_cmd);
     system($sge_blast_cmd);
-    my $qstat = `qstat`;
+    #my $qstat = `qstat`;
     #my $res = system(@cmd);
     #system($sge_blast_cmd);
     #if ($res) {
