@@ -98,7 +98,7 @@ sub do_blastp {
     #my @cmd = (@qsub_cmd, $blastp_cmd, $db, $fasta_file, @blast_options, '-o', $blast_file);
     my $cwd = getcwd();
     #my @cmd = ($blastp_cmd, $db, $fasta_file, @blast_options, '-o', $cwd.'/'.$blast_file);
-    my @cmd = ($blastp_cmd, '-d', $db, '-i', $fasta_file, @blast_options, '-o', $cwd.'/'.$blast_file);
+    my @cmd = ($blastp_cmd, '-d', $db, '-i', $cwd.'/'.$fasta_file, @blast_options, '-o', $cwd.'/'.$blast_file);
     my $blast_cmd = join(' ', @cmd); 
     #warn "blast command: ", $blast_cmd;
     system("echo '".$blast_cmd."' > sge_command.".$fasta_file.".sh");
@@ -113,6 +113,10 @@ sub do_blastp {
     #if (!$?==0) {
     #    die "Blast failed. $!";        
     #}
+    
+    unless (-e $cwd.'/'.$blast_file) {
+        sleep(15)
+    }
     my $search_io = Bio::SearchIO->new(-file=>$blast_file, -format=>'blast');    
     return $search_io; 
 }
