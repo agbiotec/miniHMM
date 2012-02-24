@@ -389,6 +389,7 @@ package miniHMM::HmmModel;
                         $blast_match = $stored_blast{ $hit->hit_accession };
                     }
                     else {
+                        print "---- $hit->hit_accession \t $db \n ----";
                         $blast_match = blast_for_relative($hit->hit_accession, $db);
 
                         ## set the input argument for blast search result
@@ -434,6 +435,7 @@ package miniHMM::HmmModel;
                         $blast_match = $stored_blast{ $hit->hit_accession };
                     }
                     else {
+                        print "---- $hit->hit_accession \t $db \n ----";
                         $blast_match = blast_for_relative($hit->hit_accession, $db );
 
                         ## set the input argument for blast search result

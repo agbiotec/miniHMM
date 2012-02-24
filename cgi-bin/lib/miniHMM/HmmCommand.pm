@@ -213,9 +213,12 @@ package miniHMM::HmmCommand;
             foreach my $specificity (@SPECIFICITY_CUTOFFS) {
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
 
-                my $thread = threads-> create ( $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
+                my @t; 
+                push(@t, threads->new( $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
                     \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered,
-                    \%blast_results, \%non_hits ), $mini, $specificity );
+                    \%blast_results, \%non_hits ), $mini, $specificity )->join );
+
+                print "@@@@ just created a blast thread @@@@\n";
 
             }
         }
@@ -223,19 +226,21 @@ package miniHMM::HmmCommand;
 
         my $t;
         my %skip_profile; 
+        my $mini_name = 1;
 
-        until (${Thread->list()}[$t]) {
+        until (${threads->list()}[$t]) {
 
-                if ($skip_profile[$mini_name]) {
-                #kill perl thread     
+                if ($skip_profile{$mini_name}) {
+                   #kill perl thread     
+                   $_->detach();
                    next;
                 }
 
-                if  !(defined(${$t}[0])) {next;}
+                if  (!${$t}[0]) {next;}
                 
                 my $mini_cutoff_filtered = $t->[0];
                 my $mini = $t->[1];
-                my $mini_name = $mini->get_name;
+                   $mini_name = $mini->get_name;
                 my $specificity = $t->[2];
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
 
@@ -252,7 +257,7 @@ package miniHMM::HmmCommand;
                         $mini->get_profile_at_cutoff( $mini_cutoff,
                             \@above_trusted_hits, $all_ignored );
                         if ( $profiles{$mini_name}{$specificity}->sensitivity >= 100 ) {
-                            $skip_profile[$mini_name] = 1;
+                            $skip_profile{$mini_name} = 1;
                         }
         	  }
         	  else {$profiles{$mini_name}{$specificity} = _Profile->new();}
