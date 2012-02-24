@@ -214,9 +214,9 @@ package miniHMM::HmmCommand;
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
 
                 my @t; 
-                push(@t, threads->new( $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
+                push(@t, threads->new( sub {$mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
                     \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered,
-                    \%blast_results, \%non_hits ), $mini, $specificity )->join );
+                    \%blast_results, \%non_hits )}, $mini, $specificity )->join );
 
                 print "@@@@ just created a blast thread @@@@\n";
 
