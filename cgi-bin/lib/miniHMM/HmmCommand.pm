@@ -10,7 +10,7 @@ package miniHMM::HmmCommand;
     use Data::Dumper;
     use version;
     our $VERSION = qv( qw$Revision 0.0.1$ [1] );
-    use Threads;
+    use threads;
 
     # use lib qw(/usr/local/devel/ANNOTATION/rrichter/miniHMM/cgi-bin/lib);
     use miniHMM::Alignment;
@@ -215,21 +215,30 @@ package miniHMM::HmmCommand;
 
                 my $thread = threads-> create ( $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
                     \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered,
-                    \%blast_results, \%non_hits ), $mini_name, $specificity );
+                    \%blast_results, \%non_hits ), $mini, $specificity );
 
             }
         }
 
 
         my $t;
-        while ${Thread->list()}[$t] {
+        my %skip_profile; 
 
-                if !defined($t[0]) {next;}
+        until (${Thread->list()}[$t]) {
+
+                if ($skip_profile[$mini_name]) {
+                #kill perl thread     
+                   next;
+                }
+
+                if  !(defined(${$t}[0])) {next;}
                 
-                my $mini_cutoff_filtered = $t[0];
-                my $mini_name = $t[1];
-                my $specificity = $t[2];
+                my $mini_cutoff_filtered = $t->[0];
+                my $mini = $t->[1];
+                my $mini_name = $mini->get_name;
+                my $specificity = $t->[2];
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
+
 
                   if (defined($mini_cutoff)) {
         
@@ -243,7 +252,7 @@ package miniHMM::HmmCommand;
                         $mini->get_profile_at_cutoff( $mini_cutoff,
                             \@above_trusted_hits, $all_ignored );
                         if ( $profiles{$mini_name}{$specificity}->sensitivity >= 100 ) {
-                            last;
+                            $skip_profile[$mini_name] = 1;
                         }
         	  }
         	  else {$profiles{$mini_name}{$specificity} = _Profile->new();}
