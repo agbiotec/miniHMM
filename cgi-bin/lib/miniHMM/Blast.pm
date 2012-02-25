@@ -115,13 +115,14 @@ sub do_blastp {
     #}
     
     unless (-e $cwd.'/'.$blast_file) {
+        print"!!! sleeping.... !!!\n";
         sleep(15)
     }
     my $search_io = Bio::SearchIO->new(-file=>$blast_file, -format=>'blast');    
     return $search_io; 
 }
 
-memoize 'blast_for_relative';
+#memoize 'blast_for_relative';
 sub blast_for_relative {
     my $accession = shift;
     my $db = shift;
@@ -129,6 +130,8 @@ sub blast_for_relative {
     my $search_io;
     eval {
         $search_io = do_blastp($accession, $db);
+        print"!!! returned from blast.... !!!\n";
+
     };
     if ($@) {
         print "blast_for_relative failed for $accession, $db\n$@\n";

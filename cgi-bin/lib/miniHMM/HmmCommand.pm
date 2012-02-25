@@ -10,7 +10,7 @@ package miniHMM::HmmCommand;
     use Data::Dumper;
     use version;
     our $VERSION = qv( qw$Revision 0.0.1$ [1] );
-    use threads;
+    use threads('yield');
 
     # use lib qw(/usr/local/devel/ANNOTATION/rrichter/miniHMM/cgi-bin/lib);
     use miniHMM::Alignment;
@@ -206,6 +206,7 @@ package miniHMM::HmmCommand;
         my %non_hits;
         my %blast_results;
 
+        my @threads; 
         foreach my $mini (@minis) {
             my $mini_name = $mini->get_name;
 
@@ -213,10 +214,9 @@ package miniHMM::HmmCommand;
             foreach my $specificity (@SPECIFICITY_CUTOFFS) {
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
 
-                my @t; 
-                push(@t, threads->new( sub {$mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
+                push(@threads, [threads->new( sub {$mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
                     \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered,
-                    \%blast_results, \%non_hits )}, $mini, $specificity )->join );
+                    \%blast_results, \%non_hits )}), $mini, $specificity ]);
 
                 print "@@@@ just created a blast thread @@@@\n";
 
@@ -224,24 +224,27 @@ package miniHMM::HmmCommand;
         }
 
 
-        my $t;
         my %skip_profile; 
-        my $mini_name = 1;
 
-        until (${threads->list()}[$t]) {
+        until (@threads) {
 
+                my $thread = $_;
+
+                if($thread->[0]->is_running()){
+                   next;
+                }
+                
                 if ($skip_profile{$mini_name}) {
                    #kill perl thread     
-                   $_->detach();
+                   $thread->[0]->detach;
                    next;
                 }
 
-                if  (!${$t}[0]) {next;}
-                
-                my $mini_cutoff_filtered = $t->[0];
-                my $mini = $t->[1];
-                   $mini_name = $mini->get_name;
-                my $specificity = $t->[2];
+                $thread->[0]->join();
+                my $mini_cutoff_filtered = $thread->[0];
+                my $mini = $thread->[1];
+                my $mini_name = $mini->get_name;
+                my $specificity = $thread->[2];
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
 
 
