@@ -225,12 +225,14 @@ package miniHMM::HmmCommand;
 
 
         my %skip_profile; 
+        my $mini_name = 1;
 
-        until (@threads) {
+        until (!@threads) {
 
-                my $thread = $_;
+                my $thread = shift(@threads);
 
                 if($thread->[0]->is_running()){
+                   push(@threads,$thread);
                    next;
                 }
                 
@@ -243,7 +245,7 @@ package miniHMM::HmmCommand;
                 $thread->[0]->join();
                 my $mini_cutoff_filtered = $thread->[0];
                 my $mini = $thread->[1];
-                my $mini_name = $mini->get_name;
+                $mini_name = $mini->get_name;
                 my $specificity = $thread->[2];
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
 
