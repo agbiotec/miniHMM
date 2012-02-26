@@ -214,35 +214,37 @@ package miniHMM::HmmCommand;
             foreach my $specificity (@SPECIFICITY_CUTOFFS) {
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
 
-                push(@threads, [threads->new( sub {$mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
-                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered,
-                    \%blast_results, \%non_hits )}), $mini, $specificity ]);
-
-                print "@@@@ just created a blast thread @@@@\n";
+                my $thread = threads->create({'context' => 'list'}, sub {$mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
+                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits )});
+                
+                push(@threads, [$thread, $mini, $specificity]);
 
             }
         }
 
+        sleep(60);
+        my $qstat = `qstat`;
+        while (length($qstat) > 0) {
+              $qstat = `qstat`;
+              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
+              sleep(30);
+        }
 
         my %skip_profile; 
         my $mini_name = 1;
 
-        until (!@threads) {
+        foreach (@threads) {
 
-                my $thread = shift(@threads);
+                my $thread = $_;
 
-                if($thread->[0]->is_running()){
-                   push(@threads,$thread);
-                   next;
-                }
-                
                 if ($skip_profile{$mini_name}) {
-                   #kill perl thread     
                    $thread->[0]->detach;
                    next;
                 }
+                
+                print "\n\n@@@@ iterating inside threads @@@@ \n\n";
 
-                $thread->[0]->join();
+                @$thread[0]->join;
                 my $mini_cutoff_filtered = $thread->[0];
                 my $mini = $thread->[1];
                 $mini_name = $mini->get_name;
@@ -703,7 +705,7 @@ package miniHMM::HmmCommand;
         while (length($qstat) > 0) {
               $qstat = `qstat`;
               print "\n ************************ \n Hmmsearch jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
-              sleep(60);
+              sleep(30);
         }
 
         if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
@@ -712,12 +714,6 @@ package miniHMM::HmmCommand;
 
         # generate profiles
         $self->generate_profiles();
-#        my $qstat = `qstat`;
-#        while (length($qstat) > 0) {
-#              $qstat = `qstat`;
-#              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
-#              sleep(60);
-#        }
 
         if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
 		die "Seed HMM has no hits to specified database!\n";
