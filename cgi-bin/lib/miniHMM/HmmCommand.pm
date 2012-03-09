@@ -123,6 +123,7 @@ package miniHMM::HmmCommand;
             foreach my $model (@models) {
                 my $hmm_name  = $model->get_hmm_file;
                 my $hits_file = "$hmm_name.hits";
+                print "$hits_file\n";
                 if ( -f $hits_file ) {
                     $model->set_hits_file($hits_file);
                 }
@@ -130,7 +131,8 @@ package miniHMM::HmmCommand;
                     warn "Could not find hits file $hits_file.\n";
                 }
             }
-            return !$res;
+#            return !$res;
+            return 1;
         }
     }
 
@@ -215,23 +217,40 @@ package miniHMM::HmmCommand;
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
 
                 my $thread = threads->create({'context' => 'list'}, sub {$mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
-                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits )});
+                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits )})->yield;
                 
                 push(@threads, [$thread, $mini, $specificity]);
 
             }
         }
 
-        sleep(60);
-        my $qstat = `qstat`;
-        while (length($qstat) > 0) {
-              $qstat = `qstat`;
-              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
-              sleep(30);
-        }
+#        print "\n\nsleeping right before qstat\n\n";
+#        sleep(30);
+#        
+#        my $qstat = `qstat`;
+#        while (length($qstat) > 0) {
+#              print "\n\ninside qstat\n\n";
+#              $qstat = `qstat`;
+#              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
+#              sleep(30);
+#        }
 
         my %skip_profile; 
         my $mini_name = 1;
+        my $l = 1;
+
+        while ($l) {
+             $l = 0;
+             my @thr = threads->list();
+             foreach (@thr) {
+                if ($_->is_running()) {
+                   $l = 1;
+                   sleep(5);
+                   print "\n sleeping in thread run check loop \n";
+                   last;;
+                }
+             }
+        }
 
         foreach (@threads) {
 
@@ -243,8 +262,6 @@ package miniHMM::HmmCommand;
                 }
                 
                 print "\n\n@@@@ iterating inside threads @@@@ \n\n";
-
-                @$thread[0]->join;
                 my $mini_cutoff_filtered = $thread->[0];
                 my $mini = $thread->[1];
                 $mini_name = $mini->get_name;
@@ -695,57 +712,58 @@ package miniHMM::HmmCommand;
         warn "Starting run\n";
         my $self = shift;
 
-        # prep seed and minis for hmm (hmmbuild step)
+#        # prep seed and minis for hmm (hmmbuild step)
         $self->prepare_models();
 
         # do hmm evaluation on all models (seed and mini-models);
         warn "Running hmmsearches\n";
         $self->run_hmmsearches();
-        my $qstat = `qstat`;
-        while (length($qstat) > 0) {
-              $qstat = `qstat`;
-              print "\n ************************ \n Hmmsearch jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
-              sleep(30);
-        }
-
+#        my $qstat = `qstat`;
+#        while (length($qstat) > 0) {
+#              $qstat = `qstat`;
+#              print "\n ************************ \n Hmmsearch jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
+#              sleep(30);
+#        }
+#
         if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
 		die "Seed HMM has no hits to specified database!\n";
 	}
 
         # generate profiles
         $self->generate_profiles();
-
-        if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
-		die "Seed HMM has no hits to specified database!\n";
-	}
-
-        $self->write_mini_profiles();
-
-        $self->write_ignored_hits();
-        $self->write_sticky_hits();    ##########JDS
-
-        $self->calculate_overall_sensitivity_at_specificity100();
-
-        # return values
-        warn "Completed run\n";
-        my %summary;
-        $summary{specificity_cutoffs}    = [@SPECIFICITY_CUTOFFS];
-        $summary{seed_hits_above_cutoff} =
-        [ map { $_->hit_accession }
-            $self->{seed}->get_hits( $self->{trusted_cutoff} ) ];
-        $summary{profiles_by_mini} = [];
-        foreach my $mini ( @{ $self->{minis} } ) {
-            my %mini_summary;
-            my $mini_name = $mini->get_name;
-            $mini_summary{mini_name} = $mini_name;
-            $mini_summary{profiles}  = $self->{profiles}{$mini_name};
-            my @ranges = list_to_range( $self->{residues}{$mini_name} );
-            $mini_summary{mini_range} = join( ', ',
-                map { ( defined $_->[1] ) ? $_->[0] . "-" . $_->[1] : $_->[0] }
-                @ranges );
-            push @{ $summary{profiles_by_mini} }, \%mini_summary;
-        }
-        return \%summary;
+exit;
+#
+#        if ( ! @{$self->{seed}->get_hits($self->{trusted_cutoff})} ) {
+#		die "Seed HMM has no hits to specified database!\n";
+#	}
+#
+#        $self->write_mini_profiles();
+#
+#        $self->write_ignored_hits();
+#        $self->write_sticky_hits();    ##########JDS
+#
+#        $self->calculate_overall_sensitivity_at_specificity100();
+#
+#        # return values
+#        warn "Completed run\n";
+#        my %summary;
+#        $summary{specificity_cutoffs}    = [@SPECIFICITY_CUTOFFS];
+#        $summary{seed_hits_above_cutoff} =
+#        [ map { $_->hit_accession }
+#            $self->{seed}->get_hits( $self->{trusted_cutoff} ) ];
+#        $summary{profiles_by_mini} = [];
+#        foreach my $mini ( @{ $self->{minis} } ) {
+#            my %mini_summary;
+#            my $mini_name = $mini->get_name;
+#            $mini_summary{mini_name} = $mini_name;
+#            $mini_summary{profiles}  = $self->{profiles}{$mini_name};
+#            my @ranges = list_to_range( $self->{residues}{$mini_name} );
+#            $mini_summary{mini_range} = join( ', ',
+#                map { ( defined $_->[1] ) ? $_->[0] . "-" . $_->[1] : $_->[0] }
+#                @ranges );
+#            push @{ $summary{profiles_by_mini} }, \%mini_summary;
+#        }
+#        return \%summary;
     }
 }
 

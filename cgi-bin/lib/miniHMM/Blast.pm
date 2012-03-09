@@ -106,6 +106,7 @@ sub do_blastp {
     my $sge_blast_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 -N ".$fasta_file." -wd ".$cwd." sge_command.".$fasta_file.".sh";
     warn("Blast grid job ::   ".$sge_blast_cmd);
     system($sge_blast_cmd);
+    print"!!! submitted BLAST $sge_blast_cmd.... !!!\n";
     #my $qstat = `qstat`;
     #my $res = system(@cmd);
     #system($sge_blast_cmd);
@@ -142,6 +143,7 @@ sub blast_for_relative {
     my @top_hits;
     my $top_hit;
     RESULT: while (my $search = $search_io->next_result) {
+        print"!!! parsing the BLAST result.... !!!\n";
         while (my $hit = $search->next_hit ) {
             my $hit_acc = $hit->accession;
             my $hit_desc = $hit->description;

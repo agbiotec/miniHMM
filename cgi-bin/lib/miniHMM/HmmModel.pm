@@ -119,8 +119,8 @@ package miniHMM::HmmModel;
 		$hmm_build_cmd = "$hmmbuild --amino $hmm_file $alignment_file >>$log_file";
 	}
 	else { $hmm_build_cmd = "$hmmbuild --amino --informat afa $hmm_file $alignment_file >>$log_file";}
-        warn "HMM build $hmm_build_cmd\n";
-        system $hmm_build_cmd;
+        #warn "HMM build $hmm_build_cmd\n";
+        #system $hmm_build_cmd;
         #my $hmm_calibrate_cmd =
         #"/usr/local/bin/hmmcalibrate --num 1000 $hmm_file >> $log_file";
         #warn "HMM calibrate $hmm_calibrate_cmd\n";
@@ -154,12 +154,12 @@ package miniHMM::HmmModel;
         system("echo $hmm_cmd_string > sge_command.".$hmm_file.".sh");
         system("chmod u+x sge_command.".$hmm_file.".sh");
         my $hmm_cmd = "/opt/sge/bin/lx24-amd64/qsub -b no -shell yes -v PATH=/opt/sge/bin/lx24-amd64:/opt/galaxy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -v DISPLAY=:42 -N ".$hmm_file." -wd ".$cwd." sge_command.".$hmm_file.".sh"; 
-        warn "HMM command: $hmm_cmd\n";
-        my $res = system($hmm_cmd);
-        $res >>= 8;
-        if ($res) {
-            die "HMM for $hmm_file failed.\n Command: $hmm_cmd\nError: $res\n";
-        }
+#        warn "HMM command: $hmm_cmd\n";
+#        my $res = system($hmm_cmd);
+#        $res >>= 8;
+#        if ($res) {
+#            die "HMM for $hmm_file failed.\n Command: $hmm_cmd\nError: $res\n";
+#        }
         $self->set_hits_file($hits_file);
         return $self;
     }
