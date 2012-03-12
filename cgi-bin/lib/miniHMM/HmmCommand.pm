@@ -208,27 +208,34 @@ package miniHMM::HmmCommand;
         my %non_hits;
         my %blast_results;
 
-        my @threads; 
+        my $specificity = 100;
+        my @threads;  
+        #$threads[0] = ();
+        #$threads[1] = [$seq_db, $specificity, $filtered_parent_length, \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits];
         my $pl = Parallel::Loops->new(4*scalar(@minis));
         $pl->share(\@threads);
 
-        $pl->foreach (\@minis,sub{
+        #foreach my $specificity (@SPECIFICITY_CUTOFFS) {
+            $pl->foreach(\@minis,sub{
 
-            my $mini_name = $_->get_name;
+                my $mini_name = $_->get_name;
+                print "\n Creating fork for: ", $mini_name, "\t", $specificity, "\n";
 
+                #my $mini = $_;
+                my $thread = get_cutoff_for_specificity($_, $seq_db, $specificity, $filtered_parent_length,
+                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits );
+                #my $thread = $mini->get_cutoff_for_specificity(@{$threads[1]});
+                #my $thread = $mini_name;
 
-            foreach my $specificity (@SPECIFICITY_CUTOFFS) {
-                print "\n Creating fork for: \n", $mini_name, "\t", $specificity, "\n";
-                  
-
-                my $thread = $_->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
-                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits )
+                print "\n in fork loop ";
                 
+                #push(@{$threads[0]}, [$thread, $_, $specificity]);
                 push(@threads, [$thread, $_, $specificity]);
 
-            }
-        });
+            });
+        #}
 
+        print "\n\n\n ***** outside fork loop";
         print "\n\nsleeping right before qstat\n\n";
         sleep(30);
         
@@ -243,7 +250,7 @@ package miniHMM::HmmCommand;
         #we BLAST all specificities in parallel (instead of skipping the subsequent ones based on comparison with sensitivity - see ln.222 in mother code) 
         my %skip_profile; 
 
-        foreach $thread (@threads) {
+        foreach my $thread (@threads) {
 
                 my $mini = $thread->[1];
                 my $mini_name = $mini->get_name;
@@ -254,9 +261,9 @@ package miniHMM::HmmCommand;
                 
                 print "\n\n@@@@ iterating inside threads @@@@ \n\n";
 
-                my $mini_cutoff_filtered = $thread[0];
+                my $mini_cutoff_filtered = $thread->[0];
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
-                my $specificity = $thread[2];
+                my $specificity = $thread->[2];
 
                 my $all_ignored =
                 [ @manual_length_filtered, @$mini_cutoff_filtered ];
@@ -277,6 +284,183 @@ package miniHMM::HmmCommand;
         $self->{profiles}     = \%profiles;
         $self->{ignored_hits} = \%ignoreable_hits;
     }
+
+
+
+    sub get_cutoff_for_specificity {
+        my $self          = shift;
+        my $db            = shift;
+        my $specificity   = shift;
+        my $parent_length = shift;
+
+        my @above_trusted_hits = @{ $_[0] };
+        my @below_noise_hits   = @{ $_[1] };
+        my @ignored_hits       = @{ $_[2] };
+        my %stored_blast       = %{ $_[3] };
+        my %non_hits 		   = %{ $_[4] };
+
+        my %below_noise_set = map { $_->hit_accession => $_ } @below_noise_hits;
+        my %trust_set  = map { $_->hit_accession => $_ } @above_trusted_hits;
+        my %ignore_set = map { $_->hit_accession => $_ } @ignored_hits;
+
+        my @blast_filtered;
+
+        my $match_count = 0;
+        my $total_count = 0;
+        my $backup_score;
+        my $last_score;
+        my $this_score;
+	my $below_specificity = 0;
+	
+        foreach my $hit ( $self->get_hits ) {
+            next if ( $ignore_set{ $hit->hit_accession } );
+
+            $total_count++;
+            $this_score = $hit->total_score;
+
+            # 1. If the hit corresponds to an above-trusted hit to the full-length model, then increase match count
+            # 2. If the hit corresponds to a below-noise hit to the full-length model, we test if the hit is short or truncated
+            #		against the full model. If it's so, and its BLAST best match corresponds to an above-trusted hit to the full model
+            #     then, ignore this hit
+            # 3. If the hit doesn't corresond to any hit to the full-length model, we test if it's short.
+            #     Then we check it's BLAST match and ignore it accordingly.
+            if ( $trust_set{ $hit->hit_accession } ) {
+                $match_count++;
+            }
+            elsif ( $below_noise_set{ $hit->hit_accession } ) {
+                my $hit_to_parent = $below_noise_set{ $hit->hit_accession };
+                my $hit_end       = $hit_to_parent->hit_end;
+                my $hit_start     = $hit_to_parent->hit_start;
+                my $percent = ( $hit_end - $hit_start ) / $parent_length * 100;
+
+                if (   $percent <= 85 )
+                   # || $hit_to_parent->gap_start >= 10
+                   # || $hit_to_parent->gap_end >= 10 )
+                {
+                    print "short or truncated below-noise hit\n",
+                    $hit->hit_accession;
+                    my $blast_match;
+                    if ( exists $stored_blast{ $hit->hit_accession } ) {
+                        $blast_match = $stored_blast{ $hit->hit_accession };
+                    }
+                    else {
+                        print "---- $hit->hit_accession \t $db \n ----";
+                        $blast_match = blast_for_relative($hit->hit_accession, $db);
+
+                        ## set the input argument for blast search result
+                        ${ $_[3] }{ $hit->hit_accession } = $blast_match;
+                    }
+
+                    if ( $trust_set{$blast_match} ) {
+                        print "blast match ($blast_match) above trusted";
+                        push @blast_filtered, $hit;
+                        $total_count--;
+                    }
+                    else {
+                        print "blast match ($blast_match) below trusted\n";
+                    }
+                }
+            }
+            else {    # non-hit to parent
+                my $hit_length = 0;
+                if( exists $non_hits{ $hit->hit_accession} ) {
+                    $hit_length = $non_hits{ $hit->hit_accession};
+                } else {
+                    open( IN, "<$db" ) or die $!;
+                    LOOPLABEL: while (<IN>) {
+                        if (/\Q$hit->hit_accession/) {
+                            while (<IN>) {
+                                last LOOPLABEL if (/>/);
+                                $hit_length += length($_);
+                            }
+                        }
+                    }
+                    close IN;
+
+                    ${ $_[4] }{ $hit->hit_accession } = $hit_length;
+                }
+
+                my $percent = $hit_length / $parent_length * 100;
+
+                if ( $percent <= 85 ) {
+                    print "\nshort non-hit to parent model ",
+                    $hit->hit_accession,"\n";
+                    my $blast_match;
+                    if ( exists $stored_blast{ $hit->hit_accession } ) {
+                        $blast_match = $stored_blast{ $hit->hit_accession };
+                    }
+                    else {
+                        print "---- $hit->hit_accession \t $db \n ----";
+                        $blast_match = blast_for_relative($hit->hit_accession, $db );
+
+                        ## set the input argument for blast search result
+                        ${ $_[3] }{ $hit->hit_accession } = $blast_match;
+                    }
+
+                    if ( $blast_match and $trust_set{$blast_match} ) {
+                        print ", it's blast match ", $blast_match,
+                        " is above trusted";
+                        push @blast_filtered, $hit;
+                        $total_count--;
+                    }
+                }
+            }
+
+            if (   $total_count != 0
+                && $match_count * 100 / $total_count < $specificity )
+            {
+
+                # print "Less than specificity threshold\n";
+                last;
+		$below_specificity = 1;
+            }
+
+ #elsif ($match_count == $used_profile_count) { # if we've hit every possible profile, don't bother continuing
+#     $last_score = $hit->total_score;
+#     last;
+# }
+            if ( !$last_score or $this_score < $last_score ) {
+
+            # only update the last score if we leave a score equivalence group
+            # this is so, if the hit that drives us below specificity is in
+            # said group, the last fully valid score is what counts.
+                $backup_score = $last_score;
+                $last_score   = $this_score;
+            }
+
+    # 	print "This: $this_score\tLast: $last_score\tBackup: $backup_score\n";
+        }
+
+        if ( !$last_score ) {
+	
+	   return [ undef , @blast_filtered];
+	
+	}
+
+        elsif ($below_specificity && $this_score == $last_score ) {
+
+            $below_specificity = 0;
+            #	print "\nReturn backup_score: $backup_score\n\n";
+            return [ $backup_score, @blast_filtered ];
+        }
+        else {
+
+            #	print "\nReturn last_score: $last_score\n\n";
+            return [ $last_score, @blast_filtered ];
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+
 
     sub calculate_overall_sensitivity_at_specificity100 {
         my $self              = shift;
