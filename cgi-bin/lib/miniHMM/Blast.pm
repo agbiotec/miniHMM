@@ -116,7 +116,7 @@ sub do_blastp {
     #}
     
     unless (-e $cwd.'/'.$blast_file) {
-        print"!!! sleeping.... !!!\n";
+        print"!!! sleeping in BLAST.... !!!\n";
         sleep(15)
     }
     my $search_io = Bio::SearchIO->new(-file=>$blast_file, -format=>'blast');    

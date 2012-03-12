@@ -10,7 +10,6 @@ package miniHMM::HmmCommand;
     use Data::Dumper;
     use version;
     our $VERSION = qv( qw$Revision 0.0.1$ [1] );
-    use threads('yield');
 
     # use lib qw(/usr/local/devel/ANNOTATION/rrichter/miniHMM/cgi-bin/lib);
     use miniHMM::Alignment;
@@ -215,52 +214,33 @@ package miniHMM::HmmCommand;
 
             foreach my $specificity (@SPECIFICITY_CUTOFFS) {
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
-
-                my $thread = threads->create({'context' => 'list'}, sub {$mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
-                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits )})->yield;
+  
+                if ($thread = fork) {
+                    $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
+                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits );
+                }
                 
                 push(@threads, [$thread, $mini, $specificity]);
 
             }
         }
 
-#        print "\n\nsleeping right before qstat\n\n";
-#        sleep(30);
-#        
-#        my $qstat = `qstat`;
-#        while (length($qstat) > 0) {
-#              print "\n\ninside qstat\n\n";
-#              $qstat = `qstat`;
-#              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
-#              sleep(30);
-#        }
-
-        my %skip_profile; 
-        my $mini_name = 1;
-        my $l = 1;
-
-        while ($l) {
-             $l = 0;
-             my @thr = threads->list();
-             foreach (@thr) {
-                if ($_->is_running()) {
-                   $l = 1;
-                   sleep(5);
-                   print "\n sleeping in thread run check loop \n";
-                   last;;
-                }
-             }
+        print "\n\nsleeping right before qstat\n\n";
+        sleep(30);
+        
+        my $qstat = `qstat`;
+        while (length($qstat) > 0) {
+              print "\n\ninside qstat\n\n";
+              $qstat = `qstat`;
+              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
+              sleep(30);
         }
+
 
         foreach (@threads) {
 
                 my $thread = $_;
 
-                if ($skip_profile{$mini_name}) {
-                   $thread->[0]->detach;
-                   next;
-                }
-                
                 print "\n\n@@@@ iterating inside threads @@@@ \n\n";
                 my $mini_cutoff_filtered = $thread->[0];
                 my $mini = $thread->[1];
