@@ -10,7 +10,7 @@ package miniHMM::HmmCommand;
     use Data::Dumper;
     use version;
     our $VERSION = qv( qw$Revision 0.0.1$ [1] );
-    use threads('yield');
+    use Parallel::Loops;
 
     # use lib qw(/usr/local/devel/ANNOTATION/rrichter/miniHMM/cgi-bin/lib);
     use miniHMM::Alignment;
@@ -209,82 +209,69 @@ package miniHMM::HmmCommand;
         my %blast_results;
 
         my @threads; 
-        foreach my $mini (@minis) {
-            my $mini_name = $mini->get_name;
+        my $pl = Parallel::Loops->new(4*scalar(@minis));
+        $pl->share(\@threads);
+
+        $pl->foreach (\@minis,sub{
+
+            my $mini_name = $_->get_name;
 
 
             foreach my $specificity (@SPECIFICITY_CUTOFFS) {
-                print "\n\n", $mini_name, "\t", $specificity, "\n";
+                print "\n Creating fork for: \n", $mini_name, "\t", $specificity, "\n";
+                  
 
-                my $thread = threads->create({'context' => 'list'}, sub {$mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
-                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits )})->yield;
+                my $thread = $_->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
+                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits )
                 
-                push(@threads, [$thread, $mini, $specificity]);
+                push(@threads, [$thread, $_, $specificity]);
 
             }
+        });
+
+        print "\n\nsleeping right before qstat\n\n";
+        sleep(30);
+        
+        my $qstat = `qstat`;
+        while (length($qstat) > 0) {
+              print "\n\ninside qstat\n\n";
+              $qstat = `qstat`;
+              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
+              sleep(30);
         }
 
-#        print "\n\nsleeping right before qstat\n\n";
-#        sleep(30);
-#        
-#        my $qstat = `qstat`;
-#        while (length($qstat) > 0) {
-#              print "\n\ninside qstat\n\n";
-#              $qstat = `qstat`;
-#              print "\n ************************ \n BLAST jobs still running on grid :: \n\n".$qstat."\n ************************* \n";
-#              sleep(30);
-#        }
-
+        #we BLAST all specificities in parallel (instead of skipping the subsequent ones based on comparison with sensitivity - see ln.222 in mother code) 
         my %skip_profile; 
-        my $mini_name = 1;
-        my $l = 1;
 
-        while ($l) {
-             $l = 0;
-             my @thr = threads->list();
-             foreach (@thr) {
-                if ($_->is_running()) {
-                   $l = 1;
-                   sleep(5);
-                   print "\n sleeping in thread run check loop \n";
-                   last;;
-                }
-             }
-        }
+        foreach $thread (@threads) {
 
-        foreach (@threads) {
-
-                my $thread = $_;
+                my $mini = $thread->[1];
+                my $mini_name = $mini->get_name;
 
                 if ($skip_profile{$mini_name}) {
-                   $thread->[0]->detach;
                    next;
                 }
                 
                 print "\n\n@@@@ iterating inside threads @@@@ \n\n";
-                my $mini_cutoff_filtered = $thread->[0];
-                my $mini = $thread->[1];
-                $mini_name = $mini->get_name;
-                my $specificity = $thread->[2];
+
+                my $mini_cutoff_filtered = $thread[0];
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
+                my $specificity = $thread[2];
 
+                my $all_ignored =
+                [ @manual_length_filtered, @$mini_cutoff_filtered ];
+                my $key_for_ignored =
+                "Blast_filtered\t" . $mini_name . "\t" . $specificity;
+                $ignoreable_hits{$key_for_ignored} = $mini_cutoff_filtered;
 
-                  if (defined($mini_cutoff)) {
-        
-                        my $all_ignored =
-                        [ @manual_length_filtered, @$mini_cutoff_filtered ];
-                        my $key_for_ignored =
-                        "Blast_filtered\t" . $mini_name . "\t" . $specificity;
-                        $ignoreable_hits{$key_for_ignored} = $mini_cutoff_filtered;
-        
-                        $profiles{$mini_name}{$specificity} =
-                        $mini->get_profile_at_cutoff( $mini_cutoff,
-                            \@above_trusted_hits, $all_ignored );
-                        if ( $profiles{$mini_name}{$specificity}->sensitivity >= 100 ) {
-                            $skip_profile{$mini_name} = 1;
-                        }
-        	  }
-        	  else {$profiles{$mini_name}{$specificity} = _Profile->new();}
+                $profiles{$mini_name}{$specificity} =
+                $mini->get_profile_at_cutoff( $mini_cutoff,
+                    \@above_trusted_hits, $all_ignored );
+                if ( $profiles{$mini_name}{$specificity}->sensitivity >= 100 ) {
+                    $skip_profile{$mini_name} = 1;
+                }
+
+                else {$profiles{$mini_name}{$specificity} = _Profile->new();}
         }
 
         $self->{profiles}     = \%profiles;
