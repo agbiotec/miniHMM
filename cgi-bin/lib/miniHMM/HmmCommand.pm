@@ -214,13 +214,16 @@ package miniHMM::HmmCommand;
 
             foreach my $specificity (@SPECIFICITY_CUTOFFS) {
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
-  
-                if ($thread = fork) {
+            
+                my $thread; 
+                next if ($thread = fork);
+                push(@threads, [$thread, $mini, $specificity]);
+                die "fork failed: $!" unless defined $thread;
+
+                    print " Child process id : $thread\n";
                     $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
                     \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits );
-                }
-                
-                push(@threads, [$thread, $mini, $specificity]);
+                    exit;
 
             }
         }
@@ -237,14 +240,19 @@ package miniHMM::HmmCommand;
         }
 
 
+        my %skip_profile;
+
         foreach (@threads) {
 
                 my $thread = $_;
+                my $mini = $thread->[1];
+                my $mini_name = $mini->get_name;
+                if ($skip_profile{$mini_name}) {
+                   next;
+                }
 
                 print "\n\n@@@@ iterating inside threads @@@@ \n\n";
                 my $mini_cutoff_filtered = $thread->[0];
-                my $mini = $thread->[1];
-                $mini_name = $mini->get_name;
                 my $specificity = $thread->[2];
                 my $mini_cutoff = shift @$mini_cutoff_filtered;
 
