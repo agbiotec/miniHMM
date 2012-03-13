@@ -206,6 +206,7 @@ package miniHMM::HmmCommand;
         # hash to store non-hits and blast match results
         my %non_hits;
         my %blast_results;
+        my $mini_cutoff_filtered;
 
         my @threads; 
         foreach my $mini (@minis) {
@@ -214,16 +215,20 @@ package miniHMM::HmmCommand;
 
             foreach my $specificity (@SPECIFICITY_CUTOFFS) {
                 print "\n\n", $mini_name, "\t", $specificity, "\n";
-            
-                my $thread; 
-                next if ($thread = fork);
-                push(@threads, [$thread, $mini, $specificity]);
-                die "fork failed: $!" unless defined $thread;
 
-                    print " Child process id : $thread\n";
-                    $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
-                    \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits );
-                    exit;
+                my $pid = fork();
+                if ($pid) {
+                        #parent
+                       print "thread is $pid, parent $$\n";
+
+                } elsif ($pid == 0) {
+                        # child
+                        $mini_cutoff_filtered = $mini->get_cutoff_for_specificity( $seq_db, $specificity, $filtered_parent_length,
+                          \@above_trusted_hits, \@below_noise_hits, \@manual_length_filtered, \%blast_results, \%non_hits );
+                        push(@threads, [$mini_cutoff_filtered, $mini, $specificity]);
+                        exit 0; 
+
+                } else { die "couldnt fork: $!\n"; }
 
             }
         }
