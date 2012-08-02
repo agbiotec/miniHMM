@@ -293,19 +293,19 @@ package miniHMM::App; {
                 $db = $man_db;
             }
         }
-        else { # get the database from the dropdown;
-            my $sel_db_name = $q->param('calibration_db_select')||'';
-            if ($sel_db_name) {
-                my %sel_dbs = map {$_->{name} => $_->{path}} @{$self->cfg('seq_dbs')};
-                my $sel_db = $sel_dbs{$sel_db_name};
-                if ($sel_db and -f $sel_db and -r _) {
-                    $db = $sel_db;
-                }
-                else {
-                    die "Selected DB $sel_db_name does not exist, or is unreadable (config error)\n";
-                }
-            }
-        }
+#        else { # get the database from the dropdown;
+#            my $sel_db_name = $q->param('calibration_db_select')||'';
+#            if ($sel_db_name) {
+#                my %sel_dbs = map {$_->{name} => $_->{path}} @{$self->cfg('seq_dbs')};
+#                my $sel_db = $sel_dbs{$sel_db_name};
+#                if ($sel_db and -f $sel_db and -r _) {
+#                    $db = $sel_db;
+#                }
+#                else {
+#                    die "Selected DB $sel_db_name does not exist, or is unreadable (config error)\n";
+#                }
+#            }
+#        }
         if (not $db) {
             die "No database selected\n";
         }
